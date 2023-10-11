@@ -15,7 +15,9 @@ AAuraPlayerState::AAuraPlayerState()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>(TEXT("AttributeSet"));
-	
+
+	// 绑定属性 （可省略）
+	AbilitySystemComponent->AddSpawnedAttribute(AttributeSet);
 	// 网络更新 频率
 	// 更新频率为每秒 100 次。这意味着游戏引擎将在每秒内进行 100 次的网络同步
 	NetUpdateFrequency = 100.f;

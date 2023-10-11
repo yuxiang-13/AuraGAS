@@ -84,9 +84,13 @@ void AAuraPlayerController::BeginPlay()
 	check(AuraContext)
 
 	UEnhancedInputLocalPlayerSubsystem* SubSystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(SubSystem)
-	// 添加上下文
-	SubSystem->AddMappingContext(AuraContext, 0);
+
+	// ************  GetLocalPlayer()  走这块逻辑，返回的是真实有效的本地玩家，所以需要去掉断言,因为网络游戏下，都会走这个 BeginPlay逻辑
+	if (SubSystem)
+	{
+		// 添加上下文
+		SubSystem->AddMappingContext(AuraContext, 0);
+	}
 
 	//光标
 	bShowMouseCursor = true;
