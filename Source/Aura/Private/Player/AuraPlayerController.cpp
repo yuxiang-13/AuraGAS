@@ -29,7 +29,7 @@ void AAuraPlayerController::CursorTrace()
 	if (!CursorHit.bBlockingHit) return;
 
 	LastActor = ThisActor;
-	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	ThisActor = CursorHit.GetActor();
 
 	/*
 	Line trace from cursor. There are several scenarios:
@@ -49,7 +49,10 @@ void AAuraPlayerController::CursorTrace()
 		if (ThisActor != nullptr)
 		{
 			// Case B
-			ThisActor->HighLightActor();
+			if (Cast<IEnemyInterface>(ThisActor))
+			{
+				Cast<IEnemyInterface>(ThisActor)->HighLightActor();
+			}
 		} else
 		{
 			// Case A
@@ -59,14 +62,23 @@ void AAuraPlayerController::CursorTrace()
 		if (ThisActor == nullptr)
 		{
 			// Case C
-			LastActor->UnHighLightActor();
+			if (Cast<IEnemyInterface>(LastActor))
+			{
+				Cast<IEnemyInterface>(LastActor)->UnHighLightActor();
+			}
 		} else // same
 		{
 			if (LastActor != ThisActor)
 			{
 				// Case D
-				LastActor->UnHighLightActor();
-				ThisActor->HighLightActor();
+				if (Cast<IEnemyInterface>(LastActor))
+				{
+					Cast<IEnemyInterface>(LastActor)->UnHighLightActor();
+				}
+				if (Cast<IEnemyInterface>(ThisActor))
+				{
+					Cast<IEnemyInterface>(ThisActor)->HighLightActor();
+				}
 			} else
 			{
 				// Case E
