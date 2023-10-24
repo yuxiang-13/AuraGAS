@@ -16,6 +16,7 @@ GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+
 USTRUCT()
 struct FEffectProperties
 {
@@ -45,6 +46,21 @@ struct FEffectProperties
 	ACharacter* TargetCharacter = nullptr;
 };
 
+#define ATTR_Delegate(AttrName); \
+FAttributeSignature AttrName##Delegate; \
+AttrName##Delegate.BindStatic(UAuraAttributeSet::Get##AttrName##Attribute); \
+TagsToAttributes.Add(GameplayTags.Attributes_Primary_##AttrName, AttrName##Delegate);
+
+// 定义Type
+// 注意，FGameplayAttribute()带括号，1  FGameplayAttribute 是返回类型，2 ()里面是函数参数
+typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr AttributeFunPtr;
+
+// ************************ 绑定 函数指针
+//1 using 创建Type别名，函数别名
+//2 xxx ::FFuncPtr 属于依赖类型，需要前面加用typename ，告诉引擎是一个类型
+template<class T>
+using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
+
 UCLASS()
 class AURA_API UAuraAttributeSet : public UAttributeSet
 {
@@ -55,6 +71,11 @@ public:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
+	TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr xxx;
+
+	// 是模板。所以 < FGameplayAttribute() >
+	TMap<FGameplayTag,  TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
 
 	/*
 	 *  Primary Attributes  主属性
