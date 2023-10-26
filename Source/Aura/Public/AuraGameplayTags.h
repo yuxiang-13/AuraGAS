@@ -41,9 +41,17 @@ public:
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
 
+	// 输入
+	// 鼠标左
+	FGameplayTag InputTag_LMB;
+	// 鼠标右
+	FGameplayTag InputTag_RMB;
+	// 输入按键ID（可定义任意）
+	FGameplayTag InputTag_1;
+	FGameplayTag InputTag_2;
+	FGameplayTag InputTag_3;
+	FGameplayTag InputTag_4;
 	
-protected:
-
 private:
 	static FAuraGameplayTags GameplayTags;
 };
