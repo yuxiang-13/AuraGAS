@@ -5,16 +5,20 @@
 
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
-	// 每当GE应用于自身时在服务器上调用。这包括基于即时和持续时间的GE
-	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::EffectApplied);
-
+	if (GetWorld()->IsServer())
+	{
+		// 每当GE应用于自身时在服务器上调用。这包括基于即时和持续时间的GE
+		OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);
+	} else
+	{
+		// 客户端 绑定不绑定的，没用。因为只在服务器上的生效
+	}
 }
 
-void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* AbilitySystemComponent,
+void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,
                                                 const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
 {
 	FGameplayTagContainer TagContainer;
@@ -44,8 +48,6 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
 	if ( ! InputTag.IsValid()) return;
-
-	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT(" ------->>> is    ")), true, true, FLinearColor::Red, 10.f);
 
 	// 返回所有   可激活   能力的列表
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
@@ -88,3 +90,4 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 		}
 	}
 }
+
