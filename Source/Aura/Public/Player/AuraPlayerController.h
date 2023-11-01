@@ -37,6 +37,13 @@ private:
 	TObjectPtr<UInputAction> MoveAction;
 	void Move(const FInputActionValue& InputActionValue);
 	
+	// 发射火球 输入Shift
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> ShiftAction;
+	void ShiftPressed() { bShiftKeyDown = true; };
+	void ShiftRelease() { bShiftKeyDown = false; };
+	bool bShiftKeyDown = false;
+
 	// 鼠标跟踪
 	void CursorTrace();
 	TObjectPtr<AActor> LastActor;
