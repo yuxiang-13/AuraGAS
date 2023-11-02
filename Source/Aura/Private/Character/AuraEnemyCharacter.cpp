@@ -4,8 +4,11 @@
 #include "Character/AuraEnemyCharacter.h"
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "Aura/Aura.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Widget/AuraUserWidget.h"
 
 AAuraEnemyCharacter::AAuraEnemyCharacter()
 {
@@ -17,6 +20,9 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>(TEXT("AttributeSet"));
+
+	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+	HealthBar->SetupAttachment(GetRootComponent());
 }
 
 void AAuraEnemyCharacter::HighLightActor()
@@ -43,6 +49,37 @@ void AAuraEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	InitAbilityActorInfo();
+
+	
+	// 组件强转成 子类
+	// UWidgetComponent -> UAuraUserWidget
+	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
+	{
+		// 设置控制器类
+		AuraUserWidget->SetWidgetController(this);
+	}
+	
+	// 绑定属性变化委托
+	if (UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(AttributeSet))
+	{
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAS->GetHealthAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				OnHealtChanged.Broadcast(Data.NewValue);
+			}
+		);
+
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAS->GetMaxHealthAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				OnMaxHealtChanged.Broadcast(Data.NewValue);
+			}
+		);
+
+		// 触发初始化
+		OnHealtChanged.Broadcast(AuraAS->GetHealth());
+		OnMaxHealtChanged.Broadcast(AuraAS->GetMaxHealth());
+	}
 }
 
 void AAuraEnemyCharacter::InitAbilityActorInfo()
@@ -50,4 +87,12 @@ void AAuraEnemyCharacter::InitAbilityActorInfo()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
+
+	// 初始化敌人 属性信息
+	InitializeDefaultAttributes();
+}
+
+void AAuraEnemyCharacter::InitializeDefaultAttributes() const
+{
+	UAuraAbilitySystemLibrary::InitizeDefaultAttributes(this, CharacterClass, Level, AbilitySystemComponent);
 }
