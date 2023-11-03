@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Interacton/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -45,10 +46,25 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			Cast<APawn>(GetOwningActorFromActorInfo()), //  参数 Instigator 触发者
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
 		);
-
 		// TODO: 给导弹 添加 GE Spec 造成伤害
 		const  UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
 		const  FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+
+
+		
+		// 获取伤害标签
+		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+		// 获取伤害（根据曲线）
+		const float ScaleDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+		// GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("  FireBolt Damage : %f"), ScaleDamage));
+		
+		// 分配 Tag SetByCaller
+		// 您可以实现具有动态标签逻辑的游戏行为，而无需硬编码固定的标签分配条件
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaleDamage);
+
+
+
+		
 		// 指定积累导弹的 SpecHandle
 		Projectile->DamageEffectSpecHandle = SpecHandle;
 		

@@ -13,6 +13,7 @@ class UGameplayAbility;
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayEffect;
+class UAnimMontage;
 
 // æbstrækt 抽象（就不会UE关卡中被显示使用）
 UCLASS(Abstract)
@@ -23,6 +24,8 @@ public:
 	AAuraCharacterBase();
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; };
+
+	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -64,4 +67,7 @@ private:
 	// 1 指定 GA能力蓝图
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TObjectPtr<UAnimMontage> HitReactMontage;
 };

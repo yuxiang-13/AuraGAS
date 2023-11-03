@@ -214,6 +214,17 @@ public:
 	UFUNCTION()
 	void OnRep_ManaRegeneration(const FGameplayAttributeData& OldManaRegeneration) const;
 
+	
+/*
+ *  Meta Attributes  元属性
+ *  只存在于服务器上，不参与复制
+ */
+//---------------------元属性-----------------------------
+UPROPERTY(BlueprintReadOnly, Category=" Meta Attributes ")
+FGameplayAttributeData IncomingDamage;  // Incoming=接收
+ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage)
+
+	
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
 	
