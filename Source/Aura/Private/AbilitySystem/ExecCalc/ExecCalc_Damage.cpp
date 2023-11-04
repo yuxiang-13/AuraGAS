@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/ExecCalc/ExecCalc_Damage.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
 // 1 原C++ 结构体。没必要加F 因为是原生c++
@@ -11,6 +12,8 @@ struct AuraDamageStatics
 	// ① 使用 （声明属性捕获）宏定义
 	// 这个宏，作用是创建属性捕获变量，P只是变量名
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor) // Armor 护甲
+	DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance) // 格挡几率
+	
 
 	AuraDamageStatics()
 	{
@@ -24,6 +27,7 @@ struct AuraDamageStatics
 
 		// ③ false 是 InSnapshot 快照
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false)
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false)
 	}
 };
 
@@ -53,7 +57,7 @@ UExecCalc_Damage::UExecCalc_Damage()
 	// 底层写好的 捕获相关属性Map
 	// 2-1 将捕获定义放到Map中
 	RelevantAttributesToCapture.Add(DamageStatics().ArmorDef);
-	
+	RelevantAttributesToCapture.Add(DamageStatics().BlockChanceDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
@@ -77,16 +81,27 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	EvaluateParameters.SourceTags = SourceTags;
 	EvaluateParameters.TargetTags = TargetTags;
 
-	// Attempt = 尝试    第一次捕获 10.25 + 1 = 11.25   第二次捕获  21.5+1=22.5  也就是说，第一次在10.25基础上+11.25，所以第二次是21.5
-	// 因为使用了 EGameplayModOp::Additive 做加法
-	float ArmorNum = 0.f;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().ArmorDef, EvaluateParameters, ArmorNum);
-	ArmorNum = FMath::Max<float>(0.f, ArmorNum);
 
-	++ArmorNum;
+	// Get Damage Set by Caller Magnitude 获取  c++ Set by Caller Magnitude 传递的参数
+	float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
 
+	// 捕获格挡几率，并查看是否格挡成功
+	// 格挡成功 伤害减半
+	float TargetBlockChance = 0.f;
+	// Attempt = 尝试    捕获
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BlockChanceDef, EvaluateParameters, TargetBlockChance);
+	TargetBlockChance = FMath::Max<float>(0.f, TargetBlockChance);
+
+	// 格挡几率
+	const bool bBlocked = FMath::RandRange(1, 100) < TargetBlockChance;
+	if (bBlocked)
+	{
+		// 伤害减半
+		Damage = Damage / 2.f;
+	}
+	
 	// 修改输出属性修改后的值
-	// 目的修改： +- 护甲   float ArmorNum = 0.f;
-	const FGameplayModifierEvaluatedData EvaluatedData(DamageStatics().ArmorProperty, EGameplayModOp::Additive, ArmorNum);
+	// 目的修改： 修改 元属性 伤害
+	const FGameplayModifierEvaluatedData EvaluatedData(UAuraAttributeSet::GetIncomingDamageAttribute(), EGameplayModOp::Additive, Damage);
 	OutExecutionOutput.AddOutputModifier(EvaluatedData);
 }
