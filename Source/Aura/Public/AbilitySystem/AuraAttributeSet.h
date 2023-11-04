@@ -227,7 +227,8 @@ ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage)
 	
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
-	
+
+	void ShowFloatingText(const FEffectProperties& Props, float Damage) const;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

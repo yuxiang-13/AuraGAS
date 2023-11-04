@@ -7,7 +7,10 @@
 #include "AuraGameplayTags.h"
 #include "GameplayEffectExtension.h"
 #include "GameFramework/Character.h"
+#include "Interacton/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Player/AuraPlayerController.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -103,8 +106,16 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 			// Fatal=致命的
 			const bool bFatal = NewHealth <= 0.f;
 
-			// 不致命，受击GA触发
-			if (!bFatal)
+			// 致命
+			if (bFatal)
+			{
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if (CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+				
+			} else // 不致命，受击GA触发
 			{
 				FGameplayTagContainer TagContainer;
 				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
@@ -112,6 +123,24 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 				Props.TargetASC; // 操，这个是 哥布林
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 			}
+
+
+			ShowFloatingText(Props, LocalIncomingDamage);
+		}
+	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+	// 拒绝自我伤害
+	if (Props.SourceCharacter != Props.TargetCharacter)
+	{
+		// 获取PlayControll 哥布林身上肯定没有，只有玩家身上才有PlayerControl,那只能 是施法者玩家的
+		APlayerController * PlayerController = UGameplayStatics::GetPlayerController(Props.SourceCharacter, 0);
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(PlayerController))
+		{
+			// 哥布林身上创建 飘字组件
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter);
 		}
 	}
 }

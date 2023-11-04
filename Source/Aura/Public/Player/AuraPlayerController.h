@@ -8,6 +8,7 @@
 #include "AuraPlayerController.generated.h"
 
 
+class UDamageTextComponent;
 class USplineComponent;
 class UAuraAbilitySystemComponent;
 struct FGameplayTag;
@@ -24,11 +25,22 @@ class AURA_API AAuraPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	AAuraPlayerController();
+
+	
+	// 客户但RPC 是具体伤害
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
+
 protected:
 	virtual void PlayerTick(float DeltaTime) override;
 	
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+
+	
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputMappingContext> AuraContext;

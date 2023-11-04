@@ -37,6 +37,33 @@ UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
 	return HitReactMontage;
 }
 
+void AAuraCharacterBase::Die()
+{
+	// 服务器做的部分---- 武器分离 (服务器脱离动作 会复制到 客户端)
+	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
+
+	// 服务器和客户端都 做的部分---- 
+	// 服务器触发多播
+	MulticastHandleDeath();
+}
+
+void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+{
+	// 布娃娃
+	Weapon->SetSimulatePhysics(true);
+	Weapon->SetEnableGravity(true);
+	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetEnableGravity(true);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	Dissolve();
+}
+
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -79,4 +106,21 @@ void AAuraCharacterBase::AddCharacterAbilities()
 
 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraASC->AddCharacterAbilities(StartupAbilities);
+}
+
+void AAuraCharacterBase::Dissolve()
+{
+	if (IsValid(DissolveMateraialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(DissolveMateraialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicMatInst);
+		StartDissolveTimeLine(DynamicMatInst);
+	}
+	
+	if (IsValid(WeaponDissolveMateraialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(WeaponDissolveMateraialInstance, this);
+		Weapon->SetMaterial(0, DynamicMatInst);
+		StartWeaponDissolveTimeLine(DynamicMatInst);
+	}
 }

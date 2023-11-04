@@ -12,8 +12,10 @@
 #include "NavigationSystem.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interacton/EnemyInterface.h"
+#include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -121,6 +123,23 @@ void AAuraPlayerController::SetupInputComponent()
 	
 	// ***********  ThisClass 表示这个类文件   this 表示这个类
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &AAuraPlayerController::AbilityInputTagReleased, &AAuraPlayerController::AbilityInputTagTagHeld);
+}
+
+// 客户端RPC
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+{
+	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	{
+		// 动态创建Object组件
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+		// ***** 必须先注册组件  (因为这一步是不是馋鬼的再默认构造函数中进行，而是动态创建的)
+		DamageText->RegisterComponent();
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+
+		// **** 花样来了。。。直接分离，因为Text想要脱离玩家自我往上飘，而不是随着玩家走动。。。。。
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		DamageText->SetDamageText(DamageAmount);
+	}
 }
 
 void AAuraPlayerController::AbilityInputTagTagHeld(FGameplayTag InputTag)

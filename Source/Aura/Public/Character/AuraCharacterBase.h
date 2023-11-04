@@ -26,6 +26,11 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; };
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+
+	virtual void Die() override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastHandleDeath();
 protected:
 	virtual void BeginPlay() override;
 
@@ -63,6 +68,24 @@ protected:
 
 	//2 赋予能力
 	void AddCharacterAbilities();
+
+	/* 溶解特效 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> DissolveMateraialInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> WeaponDissolveMateraialInstance;
+
+	// 创建动态材质 替换当前材质
+	void Dissolve();
+
+	// 蓝图事件
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeLine(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	
+	// 蓝图事件
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeLine(UMaterialInstanceDynamic* DynamicMaterialInstance);
 private:
 	// 1 指定 GA能力蓝图
 	UPROPERTY(EditAnywhere, Category="Abilities")
