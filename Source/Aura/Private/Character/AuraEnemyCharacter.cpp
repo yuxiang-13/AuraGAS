@@ -59,8 +59,12 @@ void AAuraEnemyCharacter::BeginPlay()
 
 	InitAbilityActorInfo();
 
-	// 给予能力
-	UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+	if (HasAuthority())
+	{
+		// 给予能力
+		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+	}
+
 	
 	// 组件强转成 子类
 	// UWidgetComponent -> UAuraUserWidget
@@ -114,8 +118,12 @@ void AAuraEnemyCharacter::InitAbilityActorInfo()
 
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
-	// 初始化敌人 属性信息
-	InitializeDefaultAttributes();
+	
+	if (HasAuthority())
+	{
+		// 初始化敌人 属性信息
+		InitializeDefaultAttributes();
+	}
 }
 
 void AAuraEnemyCharacter::InitializeDefaultAttributes() const

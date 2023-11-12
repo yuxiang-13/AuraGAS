@@ -29,7 +29,7 @@ public:
 	
 	// 客户但RPC 是具体伤害
 	UFUNCTION(Client, Reliable)
-	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
 
 protected:
 	virtual void PlayerTick(float DeltaTime) override;

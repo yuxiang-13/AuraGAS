@@ -1,0 +1,24 @@
+// yyyyyxxxxxx
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "AuraDamageGameplayAbility.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class AURA_API UAuraDamageGameplayAbility : public UAuraGameplayAbility
+{
+	GENERATED_BODY()
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
+
+	// 伤害类型Map---> 不同伤害曲线
+	UPROPERTY(EditDefaultsOnly, Category="Damage")
+	TMap<FGameplayTag, FScalableFloat> DamageTypes;
+	
+};

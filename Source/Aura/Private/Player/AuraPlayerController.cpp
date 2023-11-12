@@ -15,6 +15,7 @@
 #include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interacton/EnemyInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
@@ -126,10 +127,12 @@ void AAuraPlayerController::SetupInputComponent()
 }
 
 // 客户端RPC
-void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
-	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	//  
+	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
+		
 		// 动态创建Object组件
 		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
 		// ***** 必须先注册组件  (因为这一步是不是馋鬼的再默认构造函数中进行，而是动态创建的)
@@ -138,7 +141,7 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 
 		// **** 花样来了。。。直接分离，因为Text想要脱离玩家自我往上飘，而不是随着玩家走动。。。。。
 		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		DamageText->SetDamageText(DamageAmount);
+		DamageText->SetDamageText(DamageAmount, bBlockedHit, bCriticalHit);
 	}
 }
 

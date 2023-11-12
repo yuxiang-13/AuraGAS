@@ -41,6 +41,13 @@ public:
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
 
+	// 抗性
+	FGameplayTag Attributes_Resistance_Fire;
+	FGameplayTag Attributes_Resistance_Lightning; // 雷电抗性
+	FGameplayTag Attributes_Resistance_Arcane; // 法术抗性
+	FGameplayTag Attributes_Resistance_Physical; // 物理抗性
+	
+
 	// 输入
 	// 鼠标左
 	FGameplayTag InputTag_LMB;
@@ -53,7 +60,18 @@ public:
 	FGameplayTag InputTag_4;
 
 	FGameplayTag Damage;
+	// 火焰伤害类型
+	FGameplayTag Damage_Fire; // 火
+	FGameplayTag Damage_Lightning; // 雷电
+	FGameplayTag Damage_Arcane; // 法术
+	FGameplayTag Damage_Physical; // 物理
+
+	// 伤害类型+伤害抗性 Map
+	TMap<FGameplayTag, FGameplayTag> DamageTpesToResistance;
+	
 	FGameplayTag Effects_HitReact;
+
+	
 private:
 	static FAuraGameplayTags GameplayTags;
 };

@@ -8,7 +8,6 @@
 #include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Interacton/CombatInterface.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                            const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
@@ -31,8 +30,6 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 		// 1 A-B = B看向A  获取武器插槽位置到目标点的 向量的旋转
 		FRotator Rotatior = (ProjectileTargetLocation - SocketLocation).Rotation();
-		// (抬头低头)因为怪比较小，权杖高，肯定就向下发射了，改成水平的
-		Rotatior.Pitch = 0.f;
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
@@ -48,25 +45,36 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		);
 		// TODO: 给导弹 添加 GE Spec 造成伤害
 		const  UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-		const  FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
-
 
 		
-		// 获取伤害标签
-		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-		// 获取伤害（根据曲线）
-		// const float ScaleDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-		const float ScaleDamage = Damage.GetValueAtLevel(10);
-
+		//  SourceASC->MakeEffectContext()
+		//  这种就会默认设置 EffectCauser 和 Instigator相关
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
 		
-		// GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, FString::Printf(TEXT("  FireBolt Damage : %f"), ScaleDamage));
+		EffectContextHandle.SetAbility(this);
 		
-		// 分配 Tag SetByCaller
-		// 您可以实现具有动态标签逻辑的游戏行为，而无需硬编码固定的标签分配条件
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaleDamage);
+		EffectContextHandle.AddSourceObject(Projectile);
+		
+		TArray<TWeakObjectPtr<AActor>> Actors;
+		Actors.Add(Projectile);
+		EffectContextHandle.AddActors(Actors);
 
+		FHitResult HitResult;
+		HitResult.Location = ProjectileTargetLocation;
+		EffectContextHandle.AddHitResult(HitResult);
+		
+		
+		const  FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
 
-
+		// 查看伤害类型  给定伤害值
+		for (auto & Pair : DamageTypes)
+		{
+			const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+			// 分配 Tag SetByCaller
+			// 您可以实现具有动态标签逻辑的游戏行为，而无需硬编码固定的标签分配条件
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);
+		}
+		
 		
 		// 指定积累导弹的 SpecHandle
 		Projectile->DamageEffectSpecHandle = SpecHandle;
