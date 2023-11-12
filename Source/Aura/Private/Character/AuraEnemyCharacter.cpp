@@ -7,7 +7,10 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AI/AuraAIController.h"
 #include "Aura/Aura.h"
+#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widget/AuraUserWidget.h"
@@ -20,11 +23,38 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
 	AbilitySystemComponent->SetIsReplicated(true);
 	// AI控制的敌人，把模式设置成 Minimal
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
-
+	
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>(TEXT("AttributeSet"));
 
 	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthBar->SetupAttachment(GetRootComponent());
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	
+}
+
+void AAuraEnemyCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// 只服务器设置
+	if (!HasAuthority())
+	{
+		return;
+	}
+	AuraAIController = Cast<AAuraAIController>(NewController);
+	AuraAIController->RunBehaviorTree(BehaviorTree);
+
+	// 设置黑板 受击反应
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
+
+	// 设置 远近 兵
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
+	
 }
 
 void AAuraEnemyCharacter::HighLightActor()
@@ -110,6 +140,7 @@ void AAuraEnemyCharacter::HitReactTagChanged(const FGameplayTag CallbackTag, int
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
 
 	
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
 }
 
 void AAuraEnemyCharacter::InitAbilityActorInfo()

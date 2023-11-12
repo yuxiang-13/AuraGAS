@@ -45,8 +45,12 @@ protected:
 	void OnOverlap(AActor* TargetActor);
 	UFUNCTION(BlueprintCallable)
 	void OnEndOverlap(AActor* TargetActor);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly , Category= "Applied Effects")
+	bool bDestroyOnEffectApplication = false;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly , Category= "Applied Effects")
+	bool bApplyEffectsToEnemies = false;
 protected:
 	// Instant 及时
 	UPROPERTY(EditAnywhere, BlueprintReadOnly , Category= "Applied Effects")

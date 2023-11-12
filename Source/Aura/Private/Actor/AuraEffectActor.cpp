@@ -23,6 +23,8 @@ void AAuraEffectActor::BeginPlay()
 
 void AAuraEffectActor::ApplyEffectToTarget(AActor* Target, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
+	// 看看是不是敌人
+	if (Target->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 	
 	//1 ***** 获取能组件两种方式
 	//1.1 IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Target);
@@ -49,10 +51,22 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* Target, TSubclassOf<UGameplay
 	{
 		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
 	}
+
+	if (bDestroyOnEffectApplication && EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Instant)
+	{
+		Destroy();
+	}
+	if (!bIsInfinite)
+	{
+		Destroy();
+	}
 }
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+	// 看看是不是敌人
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	
 	// 即时GE 应用策略 = 碰撞就应用
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
@@ -74,6 +88,10 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 
 void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
+	// 看看是不是敌人
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+
+	
 	// 即时GE 应用策略 = 碰撞结束就应用
 	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
