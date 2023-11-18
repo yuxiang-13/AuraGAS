@@ -149,15 +149,14 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 		// Props.SourceCharacter->Controller = 发射火球的人
 		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
 		{
-			//
-			// if (GetWorld()->IsServer())
-			// {
-			// 	UKismetSystemLibrary::PrintString(this, TEXT("- -vvv ->>>>服务器触发101010"), true, true, FLinearColor::Red, 10.f);
-			// } else
-			// {
-			// 	UKismetSystemLibrary::PrintString(this, TEXT("- -vvv ->>>>客户端触发12121212"), true, true, FLinearColor::Red, 10.f);
-			// }
-			
+			// 哥布林身上创建 飘字组件
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
+			return;
+		}
+		// 上面描述不准确，这里是服务器走的位置，那PlayerControll是都存在的，所以敌人也有PlayerController
+		// 这里就是 哥布林对玩家造成伤害的 飘字
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))
+		{
 			// 哥布林身上创建 飘字组件
 			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
 		}

@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Interacton/CombatInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // 1 原C++ 结构体。没必要加F 因为是原生c++
 struct AuraDamageStatics
@@ -149,22 +150,26 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		const FGameplayTag ResistanceTag = Pair.Value;
 
 		
+		checkf(AuraDamageStatics().TagsToCaptureDefs.Contains(ResistanceTag), TEXT("TagsToCaptureDefs doesn't contain Tag: [%s] in ExecCalc_Damage"), *ResistanceTag.ToString());
 		//1    AuraDamageStatics aaa = AuraDamageStatics() 注意，这里 aaa 是直接创建一个结构体，开销大，而且出了for循环直接触发析构
 		//2   const FGameplayEffect CaptureDef = AuraDamageStatics().TagsToCaptureDefs 注意，这里 AuraDamageStatics() 是个右值！！ 没有任何接收，那出了这一行代码后，直接析构
 		const FGameplayEffectAttributeCaptureDefinition CaptureDef = AuraDamageStatics().TagsToCaptureDefs[ResistanceTag];
 
-		// 获取GE指定伤害
-		float DamageTypeValue = Spec.GetSetByCallerMagnitude(Pair.Key);
-		
-		// 捕获
-		float Resistance = 0.f;
-		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(CaptureDef, EvaluateParameters, Resistance);
-		Resistance = FMath::Clamp(Resistance, 0.f, 100.f);
+		if (Spec.SetByCallerTagMagnitudes.Find(DamageTypeTag))
+		{
+			// 获取GE指定伤害
+			float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag);
 
-		// 计算伤害
-		DamageTypeValue *= (100.f - Resistance) / 100.f;
+			// 捕获
+			float Resistance = 0.f;
+			ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(CaptureDef, EvaluateParameters, Resistance);
+			Resistance = FMath::Clamp(Resistance, 0.f, 100.f);
 		
-		Damage += DamageTypeValue;
+			// 计算伤害
+			DamageTypeValue *= (100.f - Resistance) / 100.f;
+		
+			Damage += DamageTypeValue;
+		}
 	}
 
 	// 捕获格挡几率，并查看是否格挡成功

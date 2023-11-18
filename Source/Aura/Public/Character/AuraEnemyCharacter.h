@@ -33,6 +33,11 @@ public:
 	
 	virtual void Die() override;
 
+		
+	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
+
+	virtual AActor* GetCombatTarget_Implementation() const override;
+
 	// 复用 OverlayWidgetController 类的  代理
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
 	FOnAttributeChangedSignature OnHealtChanged;
@@ -46,11 +51,15 @@ public:
 	bool bHitReacting = false;
 
 	// 基础移动速度
-	UPROPERTY(BlueprintReadOnly, Category="Combat")
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	float BaseWalkSpeed = 250.f;
 
 	UPROPERTY(BlueprintReadOnly, Category="Combat")
 	float LifeSpan = 5.f;
+
+	// 攻击目标
+	UPROPERTY(BlueprintReadWrite, Category="Combat")
+	TObjectPtr<AActor> CombatTarget;
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;

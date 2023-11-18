@@ -68,6 +68,13 @@ public:
 
 	// 伤害类型+伤害抗性 Map
 	TMap<FGameplayTag, FGameplayTag> DamageTpesToResistance;
+
+	FGameplayTag Abilities_Attack;
+
+	//蒙太奇动画攻击方式 武器攻击
+	FGameplayTag Montage_Attack_Weapon;
+	FGameplayTag Montage_Attack_RightHand;
+	FGameplayTag Montage_Attack_LeftHand;
 	
 	FGameplayTag Effects_HitReact;
 

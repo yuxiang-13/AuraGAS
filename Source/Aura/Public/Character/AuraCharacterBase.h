@@ -29,8 +29,19 @@ public:
 
 	virtual void Die() override;
 
+	/* Combat Interface */
+	virtual bool IsDead_Implementation() const override;
+	virtual AActor* GetAvator_Implementation() override;
+	virtual TArray<FTaggedMontage> GetAttackMontags_Implementation() override;
+	/* Combat Interface */
+
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
+
+	// 攻击蒙太奇
+	UPROPERTY(EditAnywhere, Category="Combat")
+	TArray<FTaggedMontage> AttackMontages;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -40,8 +51,14 @@ protected:
 	// 武器释放技能插槽位置
 	UPROPERTY(EditAnywhere, Category="Combat")
 	FName WeaponTipSocketName;
+	UPROPERTY(EditAnywhere, Category="Combat")
+	FName LeftHandSocketName;
+	UPROPERTY(EditAnywhere, Category="Combat")
+	FName RightHandSocketName;
 
-	virtual FVector GetCombatSocketLocation() override;
+	bool bDead = false;
+
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;

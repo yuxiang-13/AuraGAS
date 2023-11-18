@@ -7,6 +7,7 @@
 #include "AuraAbilityTypes.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Aura/AuraGameModeBase.h"
+#include "Interacton/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/AuraPlayerState.h"
 #include "UI/HUD/AuraHUD.h"
@@ -75,11 +76,12 @@ void UAuraAbilitySystemLibrary::InitizeDefaultAttributes(const UObject* WorldCon
     ASC->ApplyGameplayEffectSpecToSelf(*GEVitalAttributesSpecHandle.Data.Get());
 }
 
-void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC)
+void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)
 {
     // 角色初始化默认属性GE+公共GA
     UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
     if (CharacterClassInfo == nullptr) return;
+    
     for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
     {
         // GA Spec 实例
@@ -88,6 +90,22 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContext
         // 给予能力GA
         ASC->GiveAbility(AbilitySpec); 
     }
+
+    // ****  获取结构体 用引用，别拷贝
+    const FCharacterClassDefaultInfo& DefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+    for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultInfo.StartupAbilities)
+    {
+        // 获取等级
+        ICombatInterface* CombatInterface = Cast<ICombatInterface>(ASC->GetAvatarActor());
+        if (CombatInterface)
+        {
+            // GA Spec 实例
+            FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, CombatInterface->GetPlayerLevel());
+
+            // 给予能力GA
+            ASC->GiveAbility(AbilitySpec); 
+        }
+    } 
     
 }
 
@@ -140,4 +158,36 @@ void UAuraAbilitySystemLibrary::SetIsCriticalHit(FGameplayEffectContextHandle& E
     {
         AuraEffectContext->SetIsCriticalHit(bInIsCriticalHit);
     }
+}
+
+void UAuraAbilitySystemLibrary::GetLivePlayersWithInRadius(const UObject* WorldContextObject,
+    TArray<AActor*>& OutOverlappingActors, const TArray<AActor*>& ActorsToIgnore, float Radius,
+    const FVector& SphereOrigin)
+{
+    FCollisionQueryParams SphereParams;
+    SphereParams.AddIgnoredActors(ActorsToIgnore);
+
+    if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+    {
+        TArray<FOverlapResult> Overlaps;
+        World->OverlapMultiByObjectType(Overlaps, SphereOrigin, FQuat::Identity, FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects), FCollisionShape::MakeSphere(Radius), SphereParams);
+        for (FOverlapResult& Overlap : Overlaps)
+        {
+            // 是否实现接口类
+            // 获取接口
+            if (Overlap.GetActor()->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsDead(Overlap.GetActor()))
+            {
+                OutOverlappingActors.AddUnique(ICombatInterface::Execute_GetAvator(Overlap.GetActor()));
+            }
+        }
+    }
+    
+}
+
+bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondActor)
+{
+    const bool bBothArePlayers = FirstActor->ActorHasTag(FName("Player")) && SecondActor->ActorHasTag(FName("Player"));
+    const bool bBothAreEnemies = FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
+    const bool bFriends = bBothArePlayers || bBothAreEnemies;
+    return !bFriends;
 }

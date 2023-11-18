@@ -27,7 +27,15 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
 	if (CombatInterface)
 	{
-		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+		// 1 下面这个报错
+		// const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+		// 2 参数代表着强转的类
+		const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(
+			GetAvatarActorFromActorInfo(),
+			FAuraGameplayTags::Get().Montage_Attack_Weapon
+		);
+		
+		
 		// 1 A-B = B看向A  获取武器插槽位置到目标点的 向量的旋转
 		FRotator Rotatior = (ProjectileTargetLocation - SocketLocation).Rotation();
 
