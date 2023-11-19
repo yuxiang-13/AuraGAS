@@ -18,6 +18,8 @@ class AURA_API AAuraProjectile : public AActor
 	
 public:	
 	AAuraProjectile();
+
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
 	// *** InitialHealth 属性被标记为 ExposeOnSpawn，这意味着在蓝图中创建该类的实例时，用户将能够在创建实例时设置 InitialHealth 的初始值。

@@ -6,6 +6,7 @@
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "AuraDamageGameplayAbility.generated.h"
 
+struct FTaggedMontage;
 /**
  * 
  */
@@ -23,5 +24,7 @@ protected:
 	// 伤害类型Map---> 不同伤害曲线
 	UPROPERTY(EditDefaultsOnly, Category="Damage")
 	TMap<FGameplayTag, FScalableFloat> DamageTypes;
-	
+
+	UFUNCTION(BlueprintPure)
+	FTaggedMontage GetRandomTaggedMontageFromArray(const TArray<FTaggedMontage>& TaggedMontages);
 };
