@@ -9,6 +9,7 @@
 #include "AuraCharacterBase.generated.h"
 
 
+class UNiagaraSystem;
 class UGameplayAbility;
 class UAbilitySystemComponent;
 class UAttributeSet;
@@ -33,6 +34,8 @@ public:
 	virtual bool IsDead_Implementation() const override;
 	virtual AActor* GetAvator_Implementation() override;
 	virtual TArray<FTaggedMontage> GetAttackMontags_Implementation() override;
+	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
+	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& Montage) override;
 	/* Combat Interface */
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -103,6 +106,12 @@ protected:
 	// 蓝图事件
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartWeaponDissolveTimeLine(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UNiagaraSystem* BloodEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	USoundBase* DeathSound;
 private:
 	// 1 指定 GA能力蓝图
 	UPROPERTY(EditAnywhere, Category="Abilities")

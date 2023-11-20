@@ -32,7 +32,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		// 2 参数代表着强转的类
 		const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(
 			GetAvatarActorFromActorInfo(),
-			FAuraGameplayTags::Get().Montage_Attack_Weapon
+			FAuraGameplayTags::Get().CombatSocket_Weapon
 		);
 		
 		

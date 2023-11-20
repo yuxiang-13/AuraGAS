@@ -8,6 +8,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -50,6 +51,8 @@ void AAuraCharacterBase::Die()
 
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), GetActorRotation());
+	
 	// 布娃娃
 	Weapon->SetSimulatePhysics(true);
 	Weapon->SetEnableGravity(true);
@@ -82,6 +85,23 @@ TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontags_Implementation()
 	return AttackMontages;
 }
 
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
+{
+	return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FGameplayTag& Montage)
+{
+	for (FTaggedMontage TaggedMontage : AttackMontages)
+	{
+		if (TaggedMontage.MontageTag == Montage)
+		{
+			return TaggedMontage;
+		}
+	}
+	return FTaggedMontage();
+}
+
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -94,15 +114,15 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGamepl
 	// TODO: 返回基于蒙太奇的 SocketName
 
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon))
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon))
 	{
 		return Weapon->GetSocketLocation(WeaponTipSocketName);
 	}
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_LeftHand))
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_LeftHand))
 	{
 		return GetMesh()->GetSocketLocation(LeftHandSocketName);
 	}
-	if (MontageTag.MatchesTagExact(GameplayTags.Montage_Attack_RightHand))
+	if (MontageTag.MatchesTagExact(GameplayTags.CombatSocket_RightHand))
 	{
 		return GetMesh()->GetSocketLocation(RightHandSocketName);
 	}
