@@ -70,6 +70,7 @@ public:
 	TMap<FGameplayTag, FGameplayTag> DamageTpesToResistance;
 
 	FGameplayTag Abilities_Attack;
+	FGameplayTag Abilities_Summon;
 
 	//蒙太奇动画攻击方式 武器攻击
 	FGameplayTag CombatSocket_Weapon;

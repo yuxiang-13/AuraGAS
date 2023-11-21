@@ -10,6 +10,7 @@
 struct FWidgetControllerParams;
 class UOverlayWidgetController;
 class UAbilitySystemComponent;
+class UAttributeWidgetController;
 class UAttributeSet;
 /**
  * 

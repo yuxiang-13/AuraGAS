@@ -18,7 +18,7 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation, const FGameplayTag& SocketTag, bool bOverridePitch, float PitchOverride)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (!bIsServer) return;
@@ -35,14 +35,17 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			SocketTag
 		);
 		
-		
 		// 1 A-B = B看向A  获取武器插槽位置到目标点的 向量的旋转
 		FRotator Rotatior = (ProjectileTargetLocation - SocketLocation).Rotation();
+		if (bOverridePitch) {
+			Rotatior.Pitch = PitchOverride;
+		}
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
 		// TODO: 给导弹 添加 Rotation （Rotatior -> Rotation  用 Rotatior.Quaternion()）
 		SpawnTransform.SetRotation(Rotatior.Quaternion());
+
 		
 		// SpawnActor 直接就生成了
 		// SpawnActorDeferred  Deferred 延迟 （就可以设置一些参数）
