@@ -71,6 +71,11 @@ public:
 
 	FGameplayTag Abilities_Attack;
 	FGameplayTag Abilities_Summon;
+	FGameplayTag Abilities_Fire_FireBolt;
+
+	// 冷却标签
+	FGameplayTag Cooldown_Fire_FireBolt;
+	
 
 	//蒙太奇动画攻击方式 武器攻击
 	FGameplayTag CombatSocket_Weapon;

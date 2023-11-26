@@ -9,7 +9,9 @@
 #include "OverlayWidgetController.generated.h"
 
 
-
+struct FAuraAbilityInfo;
+class UAuraAbilitySystemComponent;
+class UAbilityInfo;
 class UAuraUserWidget;
 struct FOnAttributeChangeData;
 
@@ -36,6 +38,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float,
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 
+// ui上直接绑定使用的 代理
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FAuraAbilityInfo&, Info);
+
 UCLASS()
 class AURA_API UOverlayWidgetController : public UAuraWidgetController
 {
@@ -55,6 +60,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
 	FMessageWidgetRowSignature MessageWidgetRowDelegate;
+
+
+	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+	FAbilityInfoSignature AbilityInfoSignature;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Widget Data")
@@ -62,6 +71,12 @@ protected:
 
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Widget Data")
+	TObjectPtr<UAbilityInfo> AbilityInfo;
+
+	// 初始化能力
+	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraASC);
 };
 
 template <typename T>

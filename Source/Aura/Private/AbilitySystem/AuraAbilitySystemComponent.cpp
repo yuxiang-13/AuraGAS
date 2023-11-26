@@ -5,6 +5,7 @@
 
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
+#include "Aura/AuraLogChannels.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
@@ -43,7 +44,24 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 			GiveAbility(AbilitySpec);
 		}
 	}
+
+	bStartupAbilitiesGiven = true;
+	// 该赋予的能力都赋予完了，广播
+	AbilitiesGivenDelegate.Broadcast(this);
 }
+
+void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
+{
+	Super::OnRep_ActivateAbilities();
+
+	if (!bStartupAbilitiesGiven)
+	{
+		bStartupAbilitiesGiven = true;
+		// 该赋予的能力都赋予完了，广播
+		AbilitiesGivenDelegate.Broadcast(this);
+	}
+}
+
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
@@ -91,3 +109,49 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 	}
 }
 
+
+FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	if (AbilitySpec.Ability)
+	{
+		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
+		{
+			// 两个Tag之间的 不精确的 匹配
+			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
+			{
+				return Tag;
+			}
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	for (FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("InputTag"))))
+		{
+			return Tag;
+		}
+	}
+
+	return FGameplayTag();
+}
+
+void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	
+	// 遍历已激活GA
+	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		// 执行代理，对代理的用法--->类似返回值操作
+		if (!Delegate.ExecuteIfBound(AbilitySpec))
+		{
+			// %hs 打印函数名
+			UE_LOG(LogAura, Error, TEXT("Failed to execute delegate in %hs "), __FUNCTION__);
+		}
+	}
+}

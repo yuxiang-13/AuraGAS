@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -60,24 +61,63 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 		}
 	);
 
-	// 绑定自定义在GAS的代理
-	// Lamba 是匿名函数，没有名字
-	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
-		[this](const FGameplayTagContainer& AssetTags)
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		// 说明已经给予能力后，才进行Widget绑定
+		if (AuraASC->bStartupAbilitiesGiven)
 		{
-			for (const FGameplayTag& Tag : AssetTags)
+			OnInitializeStartupAbilities(AuraASC);
+		} else
+		{
+			// 说明能力 还未给予，进行Widget绑定
+			//** 代理绑定 ： 就是绑定，不是给值，绑定上对应参数列表函数。激活广播传参
+			AuraASC->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::OnInitializeStartupAbilities);
+		}
+
+		// 绑定自定义在GAS的代理
+		// Lamba 是匿名函数，没有名字
+		AuraASC->EffectAssetTags.AddLambda(
+			[this](const FGameplayTagContainer& AssetTags)
 			{
-				// 请求一个名为"Message"的`GameplayTag`的
-				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
-				// "Message.HealthPotion" .MatchesTag("Message") will return true;
-				// "Message" .MatchesTag("Message.HealthPotion") will return false;
-				// ****** 看看Tag是不是属于Message
-				if (Tag.MatchesTag(MessageTag))
+				for (const FGameplayTag& Tag : AssetTags)
 				{
-					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
-					MessageWidgetRowDelegate.Broadcast(*Row);
+					// 请求一个名为"Message"的`GameplayTag`的
+					FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+					// "Message.HealthPotion" .MatchesTag("Message") will return true;
+					// "Message" .MatchesTag("Message.HealthPotion") will return false;
+					// ****** 看看Tag是不是属于Message
+					if (Tag.MatchesTag(MessageTag))
+					{
+						const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+						MessageWidgetRowDelegate.Broadcast(*Row);
+					}
 				}
 			}
-		}
-	);
+		);
+	}
+
+}
+
+
+void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraASC)
+{
+	// 还未给予能力
+	if (!AuraASC->bStartupAbilitiesGiven) return;
+
+	// 1 声明ASC类文件中的那个 委托
+	FForEachAbility BroadcastDelegate;
+	// 2 绑定委托，需要传递一个参数
+	BroadcastDelegate.BindLambda([this, AuraASC](const FGameplayAbilitySpec& AbilitySpec)
+	{
+		// DataAssest 中寻找这个 Tag 对应的配置
+		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraASC->GetAbilityTagFromSpec(AbilitySpec));
+		// 设置输入标签
+		Info.InputTag = AuraASC->GetInputTagFromSpec(AbilitySpec);
+
+		AbilityInfoSignature.Broadcast(Info);
+	});
+
+	
+	// 3 激活ASC类文件中的那个 委托
+	AuraASC->ForEachAbility(BroadcastDelegate);
 }

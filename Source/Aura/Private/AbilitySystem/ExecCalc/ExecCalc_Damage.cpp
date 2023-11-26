@@ -158,7 +158,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		if (Spec.SetByCallerTagMagnitudes.Find(DamageTypeTag))
 		{
 			// 获取GE指定伤害
-			float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag);
+			float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag, false);
 
 			// 捕获
 			float Resistance = 0.f;
