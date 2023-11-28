@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "GameFramework/Character.h"
 #include "Interacton/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
@@ -38,6 +39,7 @@ public:
 	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& Montage) override;
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncremenetMinionCount_Implementation(int32 Amount) override;
+	virtual ECharacterClass GetCharacterClass_Implementation() override;
 	/* Combat Interface */
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -119,10 +121,19 @@ protected:
 	USoundBase* DeathSound;
 
 	int32 MinionCount = 0;
+	
+	// 指定敌人攻击种类
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Character Class Defaults")
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+	
 private:
 	// 1 指定 GA能力蓝图
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	
+	// 1 指定 GA 被动 能力蓝图
+	UPROPERTY(EditAnywhere, Category="Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
 
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TObjectPtr<UAnimMontage> HitReactMontage;

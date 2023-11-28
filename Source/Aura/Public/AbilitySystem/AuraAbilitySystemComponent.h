@@ -27,6 +27,8 @@ public:
 
 	// 对外接口
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	// 对外接口
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
 
 	// 是否给予能力了
 	bool bStartupAbilitiesGiven = false;

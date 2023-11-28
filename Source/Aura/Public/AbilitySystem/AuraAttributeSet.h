@@ -241,21 +241,28 @@ public:
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, PhysicalResistance)
 	UFUNCTION()
 	void OnRep_PhysicalResistance(const FGameplayAttributeData& OldPhysicalResistance) const;
+
+
 	
 /*
  *  Meta Attributes  元属性
  *  只存在于服务器上，不参与复制
  */
-//---------------------元属性-----------------------------
-UPROPERTY(BlueprintReadOnly, Category=" Meta Attributes ")
-FGameplayAttributeData IncomingDamage;  // Incoming=接收
-ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage)
+	//---------------------元属性-----------------------------
+	UPROPERTY(BlueprintReadOnly, Category=" Meta Attributes ")
+	FGameplayAttributeData IncomingDamage;  // Incoming=接收
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage)
 
+	UPROPERTY(BlueprintReadOnly, Category=" Meta Attributes ")
+	FGameplayAttributeData IncomingXP;  // Incoming=接收
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingXP)
+
+	
 	
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
-
 	void ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCriticalHit) const;
+	void SendXPEvent(const FEffectProperties& Props) const;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

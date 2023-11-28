@@ -26,6 +26,7 @@ AAuraCharacter::AAuraCharacter()
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw  = false;
 
+	CharacterClass = ECharacterClass::Elementalist;
 }
 
 
@@ -45,6 +46,14 @@ void AAuraCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitAbilityActorInfo();
+}
+
+void AAuraCharacter::AddToXP_Implementation(int32 InXP)
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+
+	AuraPlayerState->AddToXP(InXP);
 }
 
 int32 AAuraCharacter::GetPlayerLevel()
