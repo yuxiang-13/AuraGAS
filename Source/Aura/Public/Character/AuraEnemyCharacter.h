@@ -28,7 +28,7 @@ public:
 	virtual void UnHighLightActor() override;
 
 	/* Combat Interface */
-	virtual int32 GetPlayerLevel() override;
+	virtual int32 GetPlayerLevel_Implementation() override;
 	/* Combat Interface */
 	
 	virtual void Die() override;

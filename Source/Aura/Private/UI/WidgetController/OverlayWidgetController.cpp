@@ -26,7 +26,13 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 	// 1  绑定  经验值变化
 	AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
 	AuraPlayerState->OnXPChangedDelegate.AddUObject(this, &UOverlayWidgetController::OnXPChanged);
-
+	// 升级
+	AuraPlayerState->OnLevelChangedDelegate.AddLambda(
+		[this](int32 InNewLevel)
+		{
+			OnPlayerLevelChangedDelegate.Broadcast(InNewLevel);
+		}
+	);
 	
 	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
 	

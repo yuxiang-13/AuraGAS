@@ -135,9 +135,19 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
 	EvaluateParameters.SourceTags = SourceTags;
 	EvaluateParameters.TargetTags = TargetTags;
-	// 获取攻击者等级
-	ICombatInterface* SourceCombatInterface = Cast<ICombatInterface>(SourceAvatar);
-	ICombatInterface* TargetCombatInterface = Cast<ICombatInterface>(TargetAvatar);
+
+	
+	int32 SourcePlayerLevel = 1;
+	if (SourceAvatar->Implements<UCombatInterface>())
+	{
+		SourcePlayerLevel = ICombatInterface::Execute_GetPlayerLevel(SourceAvatar);
+	}
+	
+	int32 TargetPlayerLevel = 1;
+	if (TargetAvatar->Implements<UCombatInterface>())
+	{
+		TargetPlayerLevel = ICombatInterface::Execute_GetPlayerLevel(TargetAvatar);
+	}
 	
 	// Get Damage Set by Caller Magnitude 获取  c++ Set by Caller Magnitude 传递的参数
 	// float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
@@ -212,7 +222,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 寻找曲线
 	const FRealCurve* ArmorPenetrationCurve = CurveTable->FindCurve(FName("ArmorPenetration"), FString(" ArmorPenetration 没找到 "));
 	// 寻找曲线值  Eval = 评估
-	const float ArmorPenetrationCoefficient = ArmorPenetrationCurve->Eval(SourceCombatInterface->GetPlayerLevel());
+	const float ArmorPenetrationCoefficient = ArmorPenetrationCurve->Eval(SourcePlayerLevel);
 
 	
 	// 护甲穿透会 减少敌人的护甲值
@@ -222,7 +232,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 寻找曲线
 	const FRealCurve* EffectiveArmorCurve = CurveTable->FindCurve(FName("EffectiveArmor"), FString(" EffectiveArmor 没找到 "));
 	// 寻找曲线值  Eval = 评估
-	const float EffectiveArmorCoefficient = EffectiveArmorCurve->Eval(TargetCombatInterface->GetPlayerLevel());
+	const float EffectiveArmorCoefficient = EffectiveArmorCurve->Eval(TargetPlayerLevel);
 	// 【百分比减免伤害---  (100 - EffectiveArmor) / 100  表示最终折算比例】
 	Damage = Damage * (100 - EffectiveArmor  * EffectiveArmorCoefficient) / 100;
 
@@ -246,7 +256,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 寻找曲线
 	const FRealCurve* CriticalHitResistanceCurve = CurveTable->FindCurve(FName("CriticalHitResistance"), FString(" CriticalHitResistance 没找到 "));
 	// 寻找曲线值  Eval = 评估
-	const float CriticalHitResistanceCoefficient = CriticalHitResistanceCurve->Eval(TargetCombatInterface->GetPlayerLevel());
+	const float CriticalHitResistanceCoefficient = CriticalHitResistanceCurve->Eval(TargetPlayerLevel);
 	
 	// 爆抗 减少 暴击几率
 	const float EffectiveCriticalHitChance = SourceCriticalHitChance - TargetCriticalHitResistance * CriticalHitResistanceCoefficient;
