@@ -71,6 +71,7 @@ public:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	
 	TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr xxx;
 
@@ -242,8 +243,6 @@ public:
 	UFUNCTION()
 	void OnRep_PhysicalResistance(const FGameplayAttributeData& OldPhysicalResistance) const;
 
-
-	
 /*
  *  Meta Attributes  元属性
  *  只存在于服务器上，不参与复制
@@ -265,4 +264,8 @@ private:
 	void SendXPEvent(const FEffectProperties& Props) const;
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	// 是否补充 最大 生命值，魔力值
+	bool bTopOffHealth = false;
+	bool bTopOffMana = false;
 };

@@ -30,28 +30,35 @@ UAuraAttributeSet::UAuraAttributeSet()
 	// 护甲
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_Armor, UAuraAttributeSet::GetArmorAttribute);;
 	// 护甲穿透
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ArmorPenetration, UAuraAttributeSet::GetArmorPenetrationAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ArmorPenetration,
+	                     UAuraAttributeSet::GetArmorPenetrationAttribute);;
 	// 格挡
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_BlockChance, UAuraAttributeSet::GetBlockChanceAttribute);;
 	// 暴击率
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitChance, UAuraAttributeSet::GetCriticalHitChanceAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitChance,
+	                     UAuraAttributeSet::GetCriticalHitChanceAttribute);;
 	// 暴击伤害
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitDamage, UAuraAttributeSet::GetCriticalHitDamageAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitDamage,
+	                     UAuraAttributeSet::GetCriticalHitDamageAttribute);;
 	// 暴击抗性
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitResistance, UAuraAttributeSet::GetCriticalHitResistanceAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_CriticalHitResistance,
+	                     UAuraAttributeSet::GetCriticalHitResistanceAttribute);;
 	// 生命恢复
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_HealthRegeneration, UAuraAttributeSet::GetHealthRegenerationAttribute);;
-	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ManaRegeneration, UAuraAttributeSet::GetManaRegenerationAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_HealthRegeneration,
+	                     UAuraAttributeSet::GetHealthRegenerationAttribute);;
+	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ManaRegeneration,
+	                     UAuraAttributeSet::GetManaRegenerationAttribute);;
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxHealth, UAuraAttributeSet::GetMaxHealthAttribute);;
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxMana, UAuraAttributeSet::GetMaxManaAttribute);;
 
 
 	// 伤害抗性
 	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Fire, UAuraAttributeSet::GetFireResistanceAttribute);
-	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Lightning, UAuraAttributeSet::GetLightningResistanceAttribute);
+	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Lightning,
+	                     UAuraAttributeSet::GetLightningResistanceAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Arcane, UAuraAttributeSet::GetArcaneResistanceAttribute);
-	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Physical, UAuraAttributeSet::GetPhysicalResistanceAttribute);
-	
+	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Physical,
+	                     UAuraAttributeSet::GetPhysicalResistanceAttribute);
 }
 
 
@@ -71,12 +78,13 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
 	}
-	
+
 	if (Attribute == GetManaAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
 	}
 }
+
 /*
  * 1 GameplayEffect对某个Attribute的BaseValue!!修改之后!!才会触发。
  * 2 当postgameplayeffectexecute调用的时候，只发生在服务器上。
@@ -122,12 +130,13 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 					CombatInterface->Die();
 				}
 				SendXPEvent(Props);
-				
-			} else // 不致命，受击GA触发
+			}
+			else // 不致命，受击GA触发
 			{
 				FGameplayTagContainer TagContainer;
 				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-				Props.SourceASC; // 操，这个是 玩家(Name = "AbilitySystemComponent", Owner = 0x00000af5457bc000 (Name="BP_AuraPlayerState_C"_0))
+				Props.SourceASC;
+				// 操，这个是 玩家(Name = "AbilitySystemComponent", Owner = 0x00000af5457bc000 (Name="BP_AuraPlayerState_C"_0))
 				Props.TargetASC; // 操，这个是 哥布林
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 			}
@@ -146,27 +155,33 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		SetIncomingXP(0.f);
 
 		// 增加啊PlayeState的经验值
-		if (Props.SourceCharacter->Implements<UPlayerInterface>() && Props.SourceCharacter->Implements<UCombatInterface>())
+		if (Props.SourceCharacter->Implements<UPlayerInterface>() && Props.SourceCharacter->Implements<
+			UCombatInterface>())
 		{
 			// 当前等级和经验
 			const int32 CurrentLevel = ICombatInterface::Execute_GetPlayerLevel(Props.SourceCharacter);
 			const int32 CurrentXP = IPlayerInterface::Execute_GetXP(Props.SourceCharacter);
 			// 传入总XP
-			const int32 NewLevel = IPlayerInterface::Execute_FindLevelForXP(Props.SourceCharacter, CurrentXP + LocalIncomingXP);
+			const int32 NewLevel = IPlayerInterface::Execute_FindLevelForXP(
+				Props.SourceCharacter, CurrentXP + LocalIncomingXP);
 			// 判断是否升级,和升级多少次
 			const int32 NewLevelUps = NewLevel - CurrentLevel;
 			if (NewLevelUps > 0)
 			{
 				// TODO 升级奖励 属性点，加血
-				const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel);
-				const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel);
-				
+				const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(
+					Props.SourceCharacter, CurrentLevel);
+				const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(
+					Props.SourceCharacter, CurrentLevel);
+
 				IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NewLevelUps);
 				IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
 				IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
 
-				SetHealth(GetMaxHealth());
-				SetMana(GetMaxMana());
+
+				bTopOffHealth = true;
+				bTopOffMana = true;
+
 				IPlayerInterface::Execute_LevelUp(Props.SourceCharacter);
 			}
 			IPlayerInterface::Execute_AddToXP(Props.SourceCharacter, LocalIncomingXP);
@@ -174,27 +189,45 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	}
 }
 
+void UAuraAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	if (Attribute == GetMaxHealthAttribute() && bTopOffHealth)
+	{
+		SetHealth(GetMaxHealth());
+		bTopOffHealth = false;
+	}
+	if (Attribute == GetMaxManaAttribute() && bTopOffMana)
+	{
+		SetMana(GetMaxMana());
+		bTopOffMana = false;
+	}
+}
+
 
 void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Props) const
 {
-	
 	// 发送经验 事件
 	if (Props.TargetCharacter->Implements<UCombatInterface>())
 	{
 		const int32 TargetLevel = ICombatInterface::Execute_GetPlayerLevel(Props.TargetCharacter);
 		const ECharacterClass TargetClass = ICombatInterface::Execute_GetCharacterClass(Props.TargetCharacter);
-		const int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(Props.TargetCharacter, TargetClass, TargetLevel);
-		
+		const int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(
+			Props.TargetCharacter, TargetClass, TargetLevel);
+
 		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
 		FGameplayEventData Payload;
 		Payload.EventTag = GameplayTags.Attributes_Meta_IncomingXP;
 		Payload.EventMagnitude = XPReward;
 		// 造成伤害的=源目标=攻击者
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter, GameplayTags.Attributes_Meta_IncomingXP, Payload);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter,
+		                                                         GameplayTags.Attributes_Meta_IncomingXP, Payload);
 	}
 }
 
-void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCriticalHit) const
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit,
+                                         bool bCriticalHit) const
 {
 	// 拒绝自我伤害
 	if (Props.SourceCharacter != Props.TargetCharacter)
@@ -221,17 +254,19 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 
 void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const
 {
-	{ // Source
+	{
+		// Source
 		Props.EffectContextHandle = Data.EffectSpec.GetContext();
-		
+
 		// Instigator 触发者  PlayState
 		Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
 
-		if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
+		if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo
+			->AvatarActor.IsValid())
 		{
 			Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
 			Props.SourceController = Props.SourceASC->AbilityActorInfo->PlayerController.Get();
-			
+
 			if (Props.SourceController == nullptr && Props.SourceAvatarActor != nullptr)
 			{
 				if (const APawn* Pawn = Cast<APawn>(Props.SourceAvatarActor))
@@ -247,7 +282,8 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 		}
 	}
 
-	{ // Target
+	{
+		// Target
 		if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
 		{
 			Props.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
@@ -370,10 +406,10 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	// REPNOTIFY_Always 表示任何下都进行通知，哪怕值变化前后具体值都没有改变  通知策略
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Health, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Mana, COND_None, REPNOTIFY_Always);
-	
+
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
-	
+
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Strength, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Intelligence, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, Resilience, COND_None, REPNOTIFY_Always);
@@ -383,7 +419,7 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, LightningResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ArcaneResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, PhysicalResistance, COND_None, REPNOTIFY_Always);
-	
+
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ArmorPenetration, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, BlockChance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CriticalHitChance, COND_None, REPNOTIFY_Always);
@@ -391,5 +427,4 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, CriticalHitResistance, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, HealthRegeneration, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet, ManaRegeneration, COND_None, REPNOTIFY_Always);
-	
 }

@@ -41,6 +41,13 @@ public:
 
 	
 	UFUNCTION(BlueprintNativeEvent)
+	int32 GetAttributePoints();
+	
+	UFUNCTION(BlueprintNativeEvent)
+	int32 GetSpellPoints();
+
+	
+	UFUNCTION(BlueprintNativeEvent)
 	int32 GetXP();
 	UFUNCTION(BlueprintNativeEvent)
 	void AddToXP(int32 InXP);

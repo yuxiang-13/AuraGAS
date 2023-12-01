@@ -38,6 +38,15 @@ public:
 	void SetXP(int32 InXP);
 	FOnPlayerStateChanged OnXPChangedDelegate;
 	
+	FORCEINLINE int32 GetAttributePoints() const { return AttributePoints; };
+	void AddToAttributePoints(int32 InAttributePoints);
+	void SetAttributePoints(int32 InAttributePoints);
+	FOnPlayerStateChanged OnAttributePointsChangedDelegate;
+	
+	FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; };
+	void AddToSpellPoints(int32 InSpellPoints);
+	void SetSpellPoints(int32 InSpellPoints);
+	FOnPlayerStateChanged OnSpellPointsChangedDelegate;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:
@@ -50,13 +59,21 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Level)
 	int32 Level = 1;
-
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
 
-	
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_XP)
 	int32 XP = 1;
 	UFUNCTION()
 	void OnRep_XP(int32 OldXP);
+	
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_AttributePoints)
+	int32 AttributePoints = 1;
+	UFUNCTION()
+	void OnRep_AttributePoints(int32 OldAttributePoints);
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_SpellPoints)
+	int32 SpellPoints = 1;
+	UFUNCTION()
+	void OnRep_SpellPoints(int32 OldSpellPoints);
 };

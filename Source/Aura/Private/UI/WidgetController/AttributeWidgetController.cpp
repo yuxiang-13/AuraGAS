@@ -3,16 +3,17 @@
 
 #include "UI/WidgetController/AttributeWidgetController.h"
 
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
+#include "Player/AuraPlayerState.h"
 
 
 void UAttributeWidgetController::BindCallbackToDependencies()
 {
-	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
 	check(AttributeInfo);
 	
-	for (auto& Pair : AuraAttributeSet->TagsToAttributes)
+	for (auto& Pair : GetAuraAS()->TagsToAttributes)
 	{
 		// 绑定建通属性变化
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
@@ -23,8 +24,14 @@ void UAttributeWidgetController::BindCallbackToDependencies()
 				BroadcastAttributeInfo(Pair.Key,  Pair.Value());
 			}
 		);
-		
 	}
+
+	GetAuraPS()->OnAttributePointsChangedDelegate.AddLambda(
+		[this](int32 Points)
+		{
+			AttributePointsChangedDelegate.Broadcast(Points);
+		}
+	);
 }
 
 void UAttributeWidgetController::BroadcastInitialValues()
@@ -36,11 +43,19 @@ void UAttributeWidgetController::BroadcastInitialValues()
 	{
 		BroadcastAttributeInfo(Pair.Key,  Pair.Value());
 	}
+	
+	AttributePointsChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoints());
 }
 
 
+void UAttributeWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+{
+	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	AuraASC->UpgradeAttribute(AttributeTag);
+}
+
 void UAttributeWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag,
-	const FGameplayAttribute Attribute) const
+                                                        const FGameplayAttribute Attribute) const
 {
 	FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(AttributeTag);
 	Info.AttributeValue = Attribute.GetNumericValue(AttributeSet);
