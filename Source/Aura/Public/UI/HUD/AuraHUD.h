@@ -7,6 +7,7 @@
 #include "UI/Widget/AuraUserWidget.h"
 #include "AuraHUD.generated.h"
 
+class USpellMenuWidgetController;
 struct FWidgetControllerParams;
 class UOverlayWidgetController;
 class UAbilitySystemComponent;
@@ -23,7 +24,7 @@ public:
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	UAttributeWidgetController* GetAttributeMenuWidgetController(const FWidgetControllerParams& WCParams);
-	
+	USpellMenuWidgetController* GetSpellMenuWidgetController(const FWidgetControllerParams& WCParams);
 private:
 	// 最底层UI  UserWidget 类
 	UPROPERTY(EditAnywhere)
@@ -45,4 +46,13 @@ private:
 	// 属性菜单   WidgetControlled UObject 类
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UAttributeWidgetController> AttributeMenuWidgetControllerClass;
+
+
+	
+	// 技能树  UserWidget 实例
+	UPROPERTY()
+	TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+	// 技能树   WidgetControlled UObject 类
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
 };

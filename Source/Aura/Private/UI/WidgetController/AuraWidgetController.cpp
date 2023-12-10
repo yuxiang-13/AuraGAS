@@ -39,7 +39,7 @@ void UAuraWidgetController::BroadcastAbilityInfo()
 		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
 		// 设置输入标签
 		Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
-
+		Info.StatusTag = AuraAbilitySystemComponent->GetStatusFromSpec(AbilitySpec);
 		AbilityInfoSignature.Broadcast(Info);
 	});
 	// 3 激活ASC类文件中的那个 委托

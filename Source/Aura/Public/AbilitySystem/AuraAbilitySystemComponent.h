@@ -43,6 +43,8 @@ public:
 	// 获取DataAssest需要输入按键Tag
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
+	// 获取技能树 GA状态 ---  静态，方便随时获取
+	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	
 	void UpgradeAttribute(const FGameplayTag& AttributeTag);
 

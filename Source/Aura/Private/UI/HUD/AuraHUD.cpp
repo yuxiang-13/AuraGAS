@@ -5,6 +5,7 @@
 
 #include "UI/WidgetController/AttributeWidgetController.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
+#include "UI/WidgetController/SpellMenuWidgetController.h"
 
 void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS)
 {
@@ -54,4 +55,17 @@ UAttributeWidgetController* AAuraHUD::GetAttributeMenuWidgetController(const FWi
 		AttributeMenuWidgetController->BindCallbackToDependencies();
 	}
 	return AttributeMenuWidgetController;
+}
+
+USpellMenuWidgetController* AAuraHUD::GetSpellMenuWidgetController(const FWidgetControllerParams& WCParams)
+{
+	if (SpellMenuWidgetController == nullptr)
+	{
+		SpellMenuWidgetController = NewObject<USpellMenuWidgetController>(this, SpellMenuWidgetControllerClass);
+		SpellMenuWidgetController->SetWidgetControllerParams(WCParams);
+
+		// Control初始化时就绑定上事件
+		SpellMenuWidgetController->BindCallbackToDependencies();
+	}
+	return SpellMenuWidgetController;
 }

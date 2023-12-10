@@ -59,6 +59,9 @@ public:
 	FGameplayTag InputTag_2;
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
+	
+	FGameplayTag InputTag_Passive_1;
+	FGameplayTag InputTag_Passive_2;
 
 	FGameplayTag Damage;
 	// 火焰伤害类型
@@ -72,6 +75,26 @@ public:
 
 	FGameplayTag Abilities_Attack;
 	FGameplayTag Abilities_Summon;
+
+	
+	// 技能点击状态
+	FGameplayTag Abilities_HitReact;
+	// 锁定
+	FGameplayTag Abilities_Status_Locked;
+	// 符合资格
+	FGameplayTag Abilities_Status_Eligible;
+	// 解锁
+	FGameplayTag Abilities_Status_UnLocked;
+	// 装备
+	FGameplayTag Abilities_Status_Equipped;
+	// 技能种类-攻击
+	FGameplayTag Abilities_Type_Offensive;
+	// 技能种类-被动
+	FGameplayTag Abilities_Type_Passive;
+	// 技能种类-无
+	FGameplayTag Abilities_Type_None;
+	
+	
 	FGameplayTag Abilities_Fire_FireBolt;
 
 	// 冷却标签
