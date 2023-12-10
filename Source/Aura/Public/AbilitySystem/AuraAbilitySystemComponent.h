@@ -10,8 +10,11 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/)
 // 赋予能力的广播
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven)
-
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&)
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FAbilityStatusChanged, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/)
+
+struct FAuraAbilityInfo;
 
 UCLASS()
 class AURA_API UAuraAbilitySystemComponent : public UAbilitySystemComponent
@@ -21,9 +24,10 @@ class AURA_API UAuraAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	void AbilityActorInfoSet();
 	FEffectAssetTags EffectAssetTags;
-
 	// 广播赋予能力 成员
 	FAbilitiesGiven AbilitiesGivenDelegate;
+	
+	FAbilityStatusChanged AbilityStatusChanged;
 
 	// 对外接口
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
@@ -42,19 +46,27 @@ public:
 	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	// 获取DataAssest需要输入按键Tag
 	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
-
 	// 获取技能树 GA状态 ---  静态，方便随时获取
 	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+
+	// 通过Tag获取GA Spec
+	FGameplayAbilitySpec* GetSpecFromAbilityTag(const FGameplayTag& AbilityTag);
 	
 	void UpgradeAttribute(const FGameplayTag& AttributeTag);
 
 	UFUNCTION(Server, Reliable)
 	void ServerUpgradeAttribute(const FGameplayTag& AttributeTag);
+
+	// 更新技能GA状态
+	void UpdateAbilityStatuses(int32 Level);
 protected:
 	virtual void OnRep_ActivateAbilities() override;
 	
 	// *********  Reliable 哪怕丢包，都确保 客户端一定收到
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
+	
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag);
 	
 };

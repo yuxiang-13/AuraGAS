@@ -205,6 +205,10 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	/*
 	 * Abilities
 	*/
+	GameplayTags.Abilities_None = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.None"),
+		FString("None Ability")
+		);
 	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Attack"),
 		FString("Attack Ability Tag")
@@ -220,6 +224,12 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		);
 	
 
+	GameplayTags.Abilities_Lightning_Electrocute = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Lightning.Electrocute"),
+		FString("Electrocute Ability Tag")
+		);
+	
+	
 
 	/*
 	 * 技能栏状态

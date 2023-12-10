@@ -73,6 +73,7 @@ public:
 	// 伤害类型+伤害抗性 Map
 	TMap<FGameplayTag, FGameplayTag> DamageTpesToResistance;
 
+	FGameplayTag Abilities_None;
 	FGameplayTag Abilities_Attack;
 	FGameplayTag Abilities_Summon;
 
@@ -96,6 +97,7 @@ public:
 	
 	
 	FGameplayTag Abilities_Fire_FireBolt;
+	FGameplayTag Abilities_Lightning_Electrocute;
 
 	// 冷却标签
 	FGameplayTag Cooldown_Fire_FireBolt;
