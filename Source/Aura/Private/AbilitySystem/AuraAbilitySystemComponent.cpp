@@ -83,9 +83,15 @@ bool UAuraAbilitySystemComponent::GetDescriptionsByAbilityTag(const FGameplayTag
 
 	// 获取全部GA
 	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
-	// 获取描述
-	int32 Level = AbilityInfo->FindAbilityInfoForTag(AbilityTag).LevelRequirement;
-	OutDescription = UAuraGameplayAbility::GetLockedDescription(Level);
+	if (!AbilityTag.IsValid() || AbilityTag.MatchesTagExact(FAuraGameplayTags::Get().Abilities_None))
+	{
+		OutDescription = FString();
+	} else
+	{
+		// 获取描述
+		int32 Level = AbilityInfo->FindAbilityInfoForTag(AbilityTag).LevelRequirement;
+		OutDescription = UAuraGameplayAbility::GetLockedDescription(Level);
+	}
 	OutNextLevelDescription = FString();
 	return false;
 }
