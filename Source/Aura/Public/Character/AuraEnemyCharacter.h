@@ -31,7 +31,7 @@ public:
 	virtual int32 GetPlayerLevel_Implementation() override;
 	/* Combat Interface */
 	
-	virtual void Die() override;
+	virtual void Die(const FVector& DeathImpulse) override;
 
 		
 	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;

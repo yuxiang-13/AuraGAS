@@ -16,6 +16,7 @@ class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayEffect;
 class UAnimMontage;
+class UDebuffNiagaraComponent;
 
 // æbstrækt 抽象（就不会UE关卡中被显示使用）
 UCLASS(Abstract)
@@ -29,9 +30,9 @@ public:
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
-	virtual void Die() override;
 
 	/* Combat Interface */
+	virtual void Die(const FVector& DeathImpulse) override;
 	virtual bool IsDead_Implementation() const override;
 	virtual AActor* GetAvator_Implementation() override;
 	virtual TArray<FTaggedMontage> GetAttackMontags_Implementation() override;
@@ -40,10 +41,16 @@ public:
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncremenetMinionCount_Implementation(int32 Amount) override;
 	virtual ECharacterClass GetCharacterClass_Implementation() override;
+	virtual FOnASCRegistered GetOnASCRefisteredDelegate() override;
+	virtual FOnDeath GetOnDeathDelegate() override;
 	/* Combat Interface */
 
+	FOnASCRegistered OnASCRegistered;
+	FOnDeath OnOnDeath;
+
+	
 	UFUNCTION(NetMulticast, Reliable)
-	virtual void MulticastHandleDeath();
+	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
 
 	// 攻击蒙太奇
 	UPROPERTY(EditAnywhere, Category="Combat")
@@ -54,6 +61,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Combat")
+	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
 
 	// 武器释放技能插槽位置
 	UPROPERTY(EditAnywhere, Category="Combat")

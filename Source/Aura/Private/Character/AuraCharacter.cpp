@@ -185,6 +185,8 @@ void AAuraCharacter::InitAbilityActorInfo()
 	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
 	AttributeSet = AuraPlayerState->GetAttributeSet();
 
+	OnASCRegistered.Broadcast(AbilitySystemComponent);
+
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 	
 	// 初始化HUD

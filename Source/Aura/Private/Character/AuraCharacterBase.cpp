@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,6 +14,10 @@
 AAuraCharacterBase::AAuraCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
+
+	BurnDebuffComponent= CreateDefaultSubobject<UDebuffNiagaraComponent>("BurnDebuffComponent");
+	BurnDebuffComponent->SetupAttachment(GetRootComponent());
+	BurnDebuffComponent->DebuffTag = FAuraGameplayTags::Get().Debuff_Burn;
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
@@ -39,17 +44,17 @@ UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
 	return HitReactMontage;
 }
 
-void AAuraCharacterBase::Die()
+void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 {
 	// 服务器做的部分---- 武器分离 (服务器脱离动作 会复制到 客户端)
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
 
 	// 服务器和客户端都 做的部分---- 
 	// 服务器触发多播
-	MulticastHandleDeath();
+	MulticastHandleDeath(DeathImpulse);
 }
 
-void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+void AAuraCharacterBase::MulticastHandleDeath_Implementation(const FVector& DeathImpulse)
 {
 	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), GetActorRotation());
 	
@@ -57,16 +62,19 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 	Weapon->SetSimulatePhysics(true);
 	Weapon->SetEnableGravity(true);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	Weapon->AddImpulse(DeathImpulse * 0.2f, NAME_None, true);
 
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetEnableGravity(true);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	GetMesh()->AddImpulse(DeathImpulse, NAME_None, true);
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	Dissolve();
 
+	OnOnDeath.Broadcast(this);
 	bDead = true;
 }
 
@@ -115,6 +123,16 @@ void AAuraCharacterBase::IncremenetMinionCount_Implementation(int32 Amount)
 ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation()
 {
 	return CharacterClass;
+}
+
+FOnASCRegistered AAuraCharacterBase::GetOnASCRefisteredDelegate()
+{
+	return OnASCRegistered;
+}
+
+FOnDeath AAuraCharacterBase::GetOnDeathDelegate()
+{
+	return OnOnDeath;
 }
 
 void AAuraCharacterBase::BeginPlay()

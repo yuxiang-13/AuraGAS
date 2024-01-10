@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AuraAbilityTypes.h"
 #include "GameplayEffectTypes.h"
 #include "GameFramework/Actor.h"
 #include "AuraProjectile.generated.h"
@@ -24,7 +25,9 @@ public:
 
 	// *** InitialHealth 属性被标记为 ExposeOnSpawn，这意味着在蓝图中创建该类的实例时，用户将能够在创建实例时设置 InitialHealth 的初始值。
 	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn = true))
-	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+	FDamageEffectParams DamageEffectParams;
+
+	void OnHit();
 protected:
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;

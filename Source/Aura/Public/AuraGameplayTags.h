@@ -41,11 +41,6 @@ public:
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
 
-	// 抗性
-	FGameplayTag Attributes_Resistance_Fire;
-	FGameplayTag Attributes_Resistance_Lightning; // 雷电抗性
-	FGameplayTag Attributes_Resistance_Arcane; // 法术抗性
-	FGameplayTag Attributes_Resistance_Physical; // 物理抗性
 	
 	FGameplayTag Attributes_Meta_IncomingXP; //  经验
 	
@@ -69,9 +64,28 @@ public:
 	FGameplayTag Damage_Lightning; // 雷电
 	FGameplayTag Damage_Arcane; // 法术
 	FGameplayTag Damage_Physical; // 物理
-
+	
+	// 抗性
+	FGameplayTag Attributes_Resistance_Fire;
+	FGameplayTag Attributes_Resistance_Lightning; // 雷电抗性
+	FGameplayTag Attributes_Resistance_Arcane; // 法术抗性
+	FGameplayTag Attributes_Resistance_Physical; // 物理抗性
 	// 伤害类型+伤害抗性 Map
 	TMap<FGameplayTag, FGameplayTag> DamageTpesToResistance;
+
+	// debuff
+	FGameplayTag Debuff_Burn; // 燃烧（火球GA）
+	FGameplayTag Debuff_Stun; // 眩晕（雷电GA）
+	FGameplayTag Debuff_Arcane; // 法术增益（法术GA）
+	FGameplayTag Debuff_Physical; // 眩晕增益（物理GA）
+	// 伤害类型+debuff Map
+	TMap<FGameplayTag, FGameplayTag> DamageTpesToDebuffs;
+	
+	
+	FGameplayTag Debuff_Chance; // 减益触发几率
+	FGameplayTag Debuff_Damage; // 减益伤害
+	FGameplayTag Debuff_Frequency; // 减益伤害 每1秒频率
+	FGameplayTag Debuff_Duration; // 减益 持续时间
 
 	FGameplayTag Abilities_None;
 	FGameplayTag Abilities_Attack;

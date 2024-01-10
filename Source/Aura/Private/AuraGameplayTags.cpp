@@ -160,9 +160,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	
 	/*
 	 * 伤害抗性
-	 * 
 	 */
-	
 	GameplayTags.Attributes_Resistance_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Attributes.Resistance.Fire"),
 		FString("Resistance To Fire Damage")
@@ -179,6 +177,51 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Attributes.Resistance.Physical"),
 		FString("Resistance To Physical Damage")
 		);
+	
+	/*
+	 * Debuffs
+	*/
+	GameplayTags.Debuff_Burn = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Burn"),
+		FString("Debuff for Fire Damage")
+		);
+	GameplayTags.Debuff_Stun = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Stun"),
+		FString("Debuff for Lightning Damage")
+		);
+	GameplayTags.Debuff_Arcane = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Arcane"),
+		FString("Debuff for Arcane Damage")
+		);
+	GameplayTags.Debuff_Physical = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Physical"),
+		FString("Debuff for Physical Damage")
+		);
+
+	
+	GameplayTags.Debuff_Chance = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Chance"),
+		FString("Debuff Chance")
+		);
+	GameplayTags.Debuff_Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Damage"),
+		FString("Debuff Damage")
+		);
+	GameplayTags.Debuff_Frequency = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Frequency"),
+		FString("Debuff Frequency")
+		);
+	GameplayTags.Debuff_Duration = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Debuff.Duration"),
+		FString("Debuff Duration")
+		);
+	
+
+	// 存起来 Map
+	GameplayTags.DamageTpesToDebuffs.Add(GameplayTags.Damage_Fire, GameplayTags.Debuff_Burn);
+	GameplayTags.DamageTpesToDebuffs.Add(GameplayTags.Damage_Lightning, GameplayTags.Debuff_Stun);
+	GameplayTags.DamageTpesToDebuffs.Add(GameplayTags.Damage_Arcane, GameplayTags.Debuff_Arcane);
+	GameplayTags.DamageTpesToDebuffs.Add(GameplayTags.Damage_Physical, GameplayTags.Debuff_Physical);
 	
 	/*
 	 * Meta Attribute
@@ -217,19 +260,14 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FName("Abilities.Summon"),
 		FString("Summon Ability Tag")
 		);
-
 	GameplayTags.Abilities_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Fire.FireBolt"),
 		FString("FireBolt Ability Tag")
 		);
-	
-
 	GameplayTags.Abilities_Lightning_Electrocute = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Lightning.Electrocute"),
 		FString("Electrocute Ability Tag")
 		);
-	
-	
 
 	/*
 	 * 技能栏状态
@@ -283,7 +321,6 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("FireBolt Cooldown Tag")
 		);
 	
-
 	/*
 	 * Combat Sockets
 	*/
@@ -304,7 +341,6 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("Tail")
 		);
 
-	
 	/*
 	 * Montage
 	*/

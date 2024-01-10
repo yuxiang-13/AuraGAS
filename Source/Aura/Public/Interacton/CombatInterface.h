@@ -7,8 +7,10 @@
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
+class UAbilitySystemComponent;
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnASCRegistered, UAbilitySystemComponent*)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadActor);
 
-enum class ECharacterClass : uint8;
 class UNiagaraSystem;
 class UAnimMontage;
 
@@ -58,7 +60,7 @@ public:
 	UAnimMontage* GetHitReactMontage();
 
 	// 纯函数
-	virtual void Die();
+	virtual void Die(const FVector& DeathImpulse) = 0;
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool IsDead() const;
@@ -82,7 +84,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void IncremenetMinionCount(int32 Amount);
 
-	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	ECharacterClass GetCharacterClass();
+
+	// 当ASC注册成功时触发代理
+	virtual FOnASCRegistered GetOnASCRefisteredDelegate() = 0;
+	virtual FOnDeath GetOnDeathDelegate() = 0;
 };

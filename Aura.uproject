@@ -15,7 +15,8 @@
 				"CoreUObject",
 				"EnhancedInput",
 				"GameplayTasks",
-				"AIModule"
+				"AIModule",
+				"Niagara"
 			]
 		}
 	],
