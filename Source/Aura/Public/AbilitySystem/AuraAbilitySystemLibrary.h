@@ -109,6 +109,13 @@ public:
 	// 当触发GE时，最好保留这个GEHandle,因为后续可以很方便控制
 	UFUNCTION(BlueprintCallable, Category= "AuraAbilitySystemLibrary|DamageEffect")
 	static FGameplayEffectContextHandle ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams);
+
+	// 均匀分散角度
+	UFUNCTION(BlueprintPure, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static TArray<FRotator> EvenlySpecedRotators(const FVector& Forward, const FVector& Axis, float Spread, int32 NumRotators);
+	// 均匀分散方向
+	UFUNCTION(BlueprintPure, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static TArray<FVector> EvenlyRotatedVectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumVectors);
 	
 	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel);
 };

@@ -40,6 +40,7 @@ public:
 	bool bStartupAbilitiesGiven = false;
 	
 	// 激活GA的对外接口
+	void AbilityInputTagPressed(const FGameplayTag& InputTag);
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
 

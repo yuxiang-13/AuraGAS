@@ -194,6 +194,36 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
 }
 
 
+void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
+{
+	if ( ! InputTag.IsValid()) return;
+
+	// 返回所有   可激活   能力的列表
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		// Exact 精确匹配
+		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
+		{
+			// 标识这个技能 被按键按下 （内部函数）
+			// 举个例子，假设你的游戏中有一个技能系统，某个角色在按下技能键后会发动一次攻击。
+			// 你可以使用AbilitySpecInputPressed函数来监听玩家的技能键输入事件，并在触发时执行相应的攻击操作
+			AbilitySpecInputPressed(AbilitySpec);
+			
+			// 检查激活
+			if (AbilitySpec.IsActive())
+			{
+				/*
+				在Unreal Engine 4（UE4）中，`InvokeReplicatedEvent`主要用于在多人游戏中同步事件。
+				当你在客户端执行某个操作，如射击或跳跃，在网络游戏中，你希望其他玩家的客户端也能看到这个操作。UE4的网络复制系统会尝试将所有人的游戏状态保持同步。
+				`InvokeReplicatedEvent`就是这个系统中的一个方法，它可以传递并触发在服务器或各个客户端上的复制事件。通常使用它来在所有客户端上同步和执行特定事件。
+				因此，`InvokeReplicatedEvent`的作用主要是在多人游戏中同步并触发特定的事件，以确保所有玩家的游戏状态保持一致。
+				 */
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
+			}
+		}
+	}
+}
+
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
 {
 	if ( ! InputTag.IsValid()) return;
@@ -229,13 +259,20 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		// Exact 精确匹配
-		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
+		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag) && AbilitySpec.IsActive())
 		{
 			// 标识这个技能 被按键释放 （内部函数）
 			// 举个例子，假设你的游戏中有一个技能系统，某个角色在释放技能键后会发动一次攻击。
 			// 你可以使用AbilitySpecInputPressed函数来监听玩家的技能键输入事件，并在触发时执行相应的攻击操作
 			AbilitySpecInputReleased(AbilitySpec);
 
+			/*
+			在Unreal Engine 4（UE4）中，`InvokeReplicatedEvent`主要用于在多人游戏中同步事件。
+			当你在客户端执行某个操作，如射击或跳跃，在网络游戏中，你希望其他玩家的客户端也能看到这个操作。UE4的网络复制系统会尝试将所有人的游戏状态保持同步。
+			`InvokeReplicatedEvent`就是这个系统中的一个方法，它可以传递并触发在服务器或各个客户端上的复制事件。通常使用它来在所有客户端上同步和执行特定事件。
+			因此，`InvokeReplicatedEvent`的作用主要是在多人游戏中同步并触发特定的事件，以确保所有玩家的游戏状态保持一致。
+			 */
+			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle, AbilitySpec.ActivationInfo.GetActivationPredictionKey());
 		}
 	}
 }

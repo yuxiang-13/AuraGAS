@@ -27,6 +27,10 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn = true))
 	FDamageEffectParams DamageEffectParams;
 
+	//TODO: UPROPERTY 自动垃圾回收 【能当这个导弹GA销毁时，这个也回收】
+	UPROPERTY()
+	TObjectPtr<USceneComponent> HomingTargetSceneComponent;
+	
 	void OnHit();
 protected:
 	virtual void BeginPlay() override;
