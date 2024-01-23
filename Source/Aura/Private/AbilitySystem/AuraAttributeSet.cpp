@@ -145,11 +145,6 @@ void UAuraAttributeSet::HandleInComingDamage(const FEffectProperties& Props)
 		// Fatal=致命的
 		const bool bFatal = NewHealth <= 0.f;
 
-		// if (bFatal && CombatInterface && CombatInterface->Execute_IsDead(Props.TargetAvatarActor))
-		// {
-		// 	return;
-		// }
-		
 		// 致命
 		if (bFatal)
 		{

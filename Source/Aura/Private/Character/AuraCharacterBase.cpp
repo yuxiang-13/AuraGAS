@@ -56,6 +56,7 @@ void AAuraCharacterBase::Die(const FVector& DeathImpulse)
 	// 服务器做的部分---- 武器分离 (服务器脱离动作 会复制到 客户端)
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
 
+	bDead = true;
 	// 服务器和客户端都 做的部分---- 
 	// 服务器触发多播
 	MulticastHandleDeath(DeathImpulse);
