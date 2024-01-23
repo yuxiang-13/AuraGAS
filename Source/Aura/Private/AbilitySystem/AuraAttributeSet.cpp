@@ -136,6 +136,8 @@ void UAuraAttributeSet::HandleInComingDamage(const FEffectProperties& Props)
 
 	if (LocalIncomingDamage > 0.f)
 	{
+		ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+		
 		// 牛逼的意义--->
 		const float NewHealth = GetHealth() - LocalIncomingDamage;
 		SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
@@ -143,11 +145,15 @@ void UAuraAttributeSet::HandleInComingDamage(const FEffectProperties& Props)
 		// Fatal=致命的
 		const bool bFatal = NewHealth <= 0.f;
 
+		// if (bFatal && CombatInterface && CombatInterface->Execute_IsDead(Props.TargetAvatarActor))
+		// {
+		// 	return;
+		// }
+		
 		// 致命
 		if (bFatal)
 		{
-			ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
-			if (CombatInterface)
+			if (CombatInterface && !CombatInterface->Execute_IsDead(Props.TargetAvatarActor))
 			{
 				CombatInterface->Die(UAuraAbilitySystemLibrary::GetDeathImpulse(Props.EffectContextHandle));
 			}
@@ -155,12 +161,18 @@ void UAuraAttributeSet::HandleInComingDamage(const FEffectProperties& Props)
 		}
 		else // 不致命，受击GA触发
 		{
-			FGameplayTagContainer TagContainer;
-			TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-			Props.SourceASC;
-			// 操，这个是 玩家(Name = "AbilitySystemComponent", Owner = 0x00000af5457bc000 (Name="BP_AuraPlayerState_C"_0))
-			Props.TargetASC; // 操，这个是 哥布林
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			// 是眩晕循环 才 被击
+			if (Props.TargetCharacter->Implements<UCombatInterface>() && ! ICombatInterface::Execute_IsBeingShocked(Props.TargetCharacter))
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+				Props.SourceASC;
+				// 操，这个是 玩家(Name = "AbilitySystemComponent", Owner = 0x00000af5457bc000 (Name="BP_AuraPlayerState_C"_0))
+				Props.TargetASC; // 操，这个是 哥布林
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
+			
+			
 
 			const FVector& KnockbackForce = UAuraAbilitySystemLibrary::GetKnockbackForce(Props.EffectContextHandle);
 			if (! KnockbackForce.IsNearlyZero(1.f))
@@ -208,8 +220,16 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	// 三、设置 减益 持续时间
 	Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
 
+	const FGameplayTag DebuffTag = GameplayTags.DamageTpesToDebuffs[DamageType];
 	// 四、授予标签,其他位置监听这个标签   Inheritable【可遗传的】
-	Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.DamageTpesToDebuffs[DamageType]);
+	Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
+	if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun))
+	{
+		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_CursorTrace);
+		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputHeld);
+		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputPressed);
+		Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputReleased);
+	}
 
 	// 五、设置效果堆叠的规则  最大生效数量
 	//这里的"Source"，指的就是这个效果的来源。比如，如果一个角色受到两个不同的角色（也就是两个“来源”）施加的同一个效果，那么这两个效果在AggregateBySource规则下，

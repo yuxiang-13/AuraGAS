@@ -58,6 +58,16 @@ void AAuraPlayerController::AutoRun()
 
 void AAuraPlayerController::CursorTrace()
 {
+	// ASC自己的Tag重 是否有 阻止标签
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_CursorTrace))
+	{
+		if (Cast<IEnemyInterface>(LastActor)) Cast<IEnemyInterface>(LastActor)->UnHighLightActor();
+		if (Cast<IEnemyInterface>(ThisActor)) Cast<IEnemyInterface>(ThisActor)->HighLightActor();
+		LastActor = ThisActor = nullptr;
+		return;
+	}
+
+	
 	// Under 下面
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
 	if (!CursorHit.bBlockingHit) return;
@@ -76,10 +86,7 @@ void AAuraPlayerController::CursorTrace()
 			Cast<IEnemyInterface>(ThisActor)->HighLightActor();
 		}
 	}
-
 }
-
-
 
 void AAuraPlayerController::BeginPlay()
 {
@@ -149,6 +156,12 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 
 void AAuraPlayerController::AbilityInputTagTagHeld(FGameplayTag InputTag)
 {
+	// ASC自己的Tag重 是否有 阻止标签
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
+	{
+		return;
+	}
+	
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
@@ -174,10 +187,18 @@ void AAuraPlayerController::AbilityInputTagTagHeld(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+	// ASC自己的Tag重 是否有 阻止标签
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
+
+	
 	// GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, *InputTag.ToString());
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (Cast<IEnemyInterface>(LastActor))
+			
 		{
 			bTargeting = true;
 		} else
@@ -192,6 +213,12 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	// ASC自己的Tag重 是否有 阻止标签
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	{
+		return;
+	}
+
 	// GEngine->AddOnScreenDebugMessage(2, 3.f, FColor::Blue, *InputTag.ToString());
 
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
@@ -225,7 +252,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 			}
 		}
 
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
+		// ASC自己的Tag重 是否有 阻止标签
+		if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
+		}
 
 		FollowTime = 0.f;
 		bTargeting = false;
@@ -245,6 +276,12 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
+	// ASC自己的Tag重 是否有 阻止标签
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
+	
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
 	// 控制器yaw 左右就够用了
 	const FRotator Rotation = GetControlRotation();

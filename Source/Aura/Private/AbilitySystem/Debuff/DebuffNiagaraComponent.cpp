@@ -29,6 +29,7 @@ void UDebuffNiagaraComponent::BeginPlay()
 		{
 			InASC->RegisterGameplayTagEvent(DebuffTag, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &UDebuffNiagaraComponent::DebuffTagChanged);
 		});
+		
 	}
 
 	// 注意，这个死亡的代理，就可以不用担心ASC是否初始化完成，对吧，所以直接Beginplay绑定

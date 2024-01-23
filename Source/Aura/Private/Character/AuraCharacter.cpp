@@ -4,6 +4,7 @@
 #include "Character/AuraCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "NiagaraComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Data/LevelUpInfo.h"
@@ -12,6 +13,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
+#include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "UI/HUD/AuraHUD.h"
 
 AAuraCharacter::AAuraCharacter()
@@ -174,6 +176,53 @@ int32 AAuraCharacter::GetPlayerLevel_Implementation()
 	return AuraPlayerState->GetLevel();
 }
 
+void AAuraCharacter::OnRep_Stunned()
+{
+	Super::OnRep_Stunned();
+
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		
+		FGameplayTagContainer BlockedTags;
+		BlockedTags.AddTag(GameplayTags.Player_Block_CursorTrace);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputHeld);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputPressed);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputReleased);
+		if (bIsStunned)
+		{
+			/** Loose = 不受约束
+			*允许GameCode添加没有GameplayEffect支持的松散游戏标签。
+			*以这种方式添加的标签不会被复制！如果需要复制，请使用这些函数的“复制”版本。
+			*这取决于调用GameCode，以确保在必要时将这些标签添加到客户端/服务器上
+			*
+			*“复制”版本 = AuraASC->AddReplicatedLooseGameplayTag()
+			*/
+			AuraASC->AddLooseGameplayTags(BlockedTags);
+			// 客户端显示 眩晕特效
+			StunDebuffComponent->Activate();
+		}
+		else
+		{
+			AuraASC->RemoveLooseGameplayTags(BlockedTags);
+			// 客户端显示 眩晕特效
+			StunDebuffComponent->Deactivate();
+		}
+	}
+}
+
+void AAuraCharacter::OnRep_Burned()
+{
+	Super::OnRep_Burned();
+	if (bIsBurned)
+	{
+		BurnDebuffComponent->Activate();
+	} else
+	{
+		BurnDebuffComponent->Deactivate();
+	}
+}
+
 // 初始化技能组件函数
 void AAuraCharacter::InitAbilityActorInfo()
 {
@@ -187,6 +236,12 @@ void AAuraCharacter::InitAbilityActorInfo()
 
 	OnASCRegistered.Broadcast(AbilitySystemComponent);
 
+	// 绑定眩晕tag监听
+	AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(
+		this, &AAuraCharacter::StunTagChanged
+	);
+	
+	
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 	
 	// 初始化HUD

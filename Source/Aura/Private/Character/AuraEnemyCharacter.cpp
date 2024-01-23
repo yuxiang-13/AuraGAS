@@ -35,6 +35,7 @@ AAuraEnemyCharacter::AAuraEnemyCharacter()
 
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	
+	BaseWalkSpeed = 250.f;
 }
 
 void AAuraEnemyCharacter::PossessedBy(AController* NewController)
@@ -167,6 +168,11 @@ void AAuraEnemyCharacter::InitAbilityActorInfo()
 
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
+
+	// 绑定眩晕tag监听
+	AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Debuff_Stun, EGameplayTagEventType::NewOrRemoved).AddUObject(
+		this, &AAuraEnemyCharacter::StunTagChanged
+	);
 	
 	if (HasAuthority())
 	{
@@ -179,4 +185,16 @@ void AAuraEnemyCharacter::InitAbilityActorInfo()
 void AAuraEnemyCharacter::InitializeDefaultAttributes() const
 {
 	UAuraAbilitySystemLibrary::InitizeDefaultAttributes(this, CharacterClass, Level, AbilitySystemComponent);
+}
+
+void AAuraEnemyCharacter::StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	Super::StunTagChanged(CallbackTag, NewCount);
+	
+	
+	if (AuraAIController && AuraAIController->GetBlackboardComponent())
+	{
+		// bIsStunned 在父类中进行了 添加删除标识
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Stunned"), bIsStunned);
+	}
 }

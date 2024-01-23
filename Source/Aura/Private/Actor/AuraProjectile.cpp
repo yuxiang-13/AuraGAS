@@ -48,6 +48,7 @@ void AAuraProjectile::BeginPlay()
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
 
 	SetLifeSpan(LifeSpan);
+	SetReplicateMovement(true);
 }
 
 void AAuraProjectile::Destroyed()
@@ -63,6 +64,8 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (DamageEffectParams.SourceAbilitySystemComponent == nullptr) return;
+
 	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
 	// 触发重叠的不是 施法者自己
 	// DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser()
