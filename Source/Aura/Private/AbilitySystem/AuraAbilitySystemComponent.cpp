@@ -15,7 +15,7 @@
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
-	if (GetWorld()->IsServer())
+	if (GetOwner()->HasAuthority())
 	{
 		// 每当GE应用于自身时在服务器上调用。这包括基于即时和持续时间的GE
 		OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);
@@ -67,48 +67,11 @@ void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSub
 	}
 }
 
-void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& Slot)
-{
-	if (FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
-	{
-		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-		
-		const FGameplayTag& PrevSlot = GetInputTagFromSpec(*AbilitySpec);
-		const FGameplayTag& Status = GetStatusFromSpec(*AbilitySpec);
-
-		const bool bStatusValid = Status == GameplayTags.Abilities_Status_Equipped || Status == GameplayTags.Abilities_Status_UnLocked;
-		if (bStatusValid)
-		{
-			// Remove this InputTag(slot) from any ability that has it
-			ClearAbilitiesOfSlot(Slot);
-			// Clear this Ability slot, just in case, it a different slot
-			ClearSlot(AbilitySpec);
-			// Now, assign this ability to this slot
-			AbilitySpec->DynamicAbilityTags.AddTag(Slot);
-			if (Status.MatchesTagExact(GameplayTags.Abilities_Status_UnLocked))
-			{
-				AbilitySpec->DynamicAbilityTags.RemoveTag(GameplayTags.Abilities_Status_UnLocked);
-				AbilitySpec->DynamicAbilityTags.AddTag(GameplayTags.Abilities_Status_Equipped);
-			}
-			MarkAbilitySpecDirty(*AbilitySpec);
-		}
-
-		ClientEquipAbility(AbilityTag, GameplayTags.Abilities_Status_Equipped, Slot, PrevSlot);
-	}
-}
-
 
 void UAuraAbilitySystemComponent::ClientEquipAbility_Implementation(const FGameplayTag& AbilityTag,
 	const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PreviousSlot)
 {
 	AbilityEquipped.Broadcast(AbilityTag, Status, Slot, PreviousSlot);
-}
-
-void UAuraAbilitySystemComponent::ClearSlot(FGameplayAbilitySpec* Spec)
-{
-	const FGameplayTag Slot = GetInputTagFromSpec(*Spec);
-	Spec->DynamicAbilityTags.RemoveTag(Slot);
-	MarkAbilitySpecDirty(*Spec);
 }
 
 void UAuraAbilitySystemComponent::ClearAbilitiesOfSlot(const FGameplayTag& Slot)
@@ -198,6 +161,8 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 {
 	if ( ! InputTag.IsValid()) return;
 
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
 	// 返回所有   可激活   能力的列表
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
@@ -228,6 +193,8 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 {
 	if ( ! InputTag.IsValid()) return;
 
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
 	// 返回所有   可激活   能力的列表
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
@@ -255,6 +222,8 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 {
 	if ( ! InputTag.IsValid()) return;
 
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
 	// 返回所有   可激活   能力的列表
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
@@ -330,13 +299,150 @@ FGameplayTag UAuraAbilitySystemComponent::GetStatusFromAbilityTag(const FGamepla
 	return FGameplayTag();
 }
 
-FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromAbilityTag(const FGameplayTag& AbilityTag)
+FGameplayTag UAuraAbilitySystemComponent::GetSlotFromAbilityTag(const FGameplayTag& AbilityTag)
 {
 	if (const FGameplayAbilitySpec* Spec = GetSpecFromAbilityTag(AbilityTag))
 	{
 		return GetInputTagFromSpec(*Spec);
 	}
 	return FGameplayTag();
+}
+
+bool UAuraAbilitySystemComponent::AbilityHasSlot(const FGameplayAbilitySpec& Spec, const FGameplayTag& Slot)
+{
+	return Spec.DynamicAbilityTags.HasTagExact(Slot);
+}
+
+bool UAuraAbilitySystemComponent::SlotIsEmpty(const FGameplayTag& Slot)
+{
+	// 当遍历激活中的GA能力数组前，要加锁，也就是在任何地方循环激活能力GA数组，都这样加锁
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilityHasSlot(AbilitySpec, Slot))
+		{
+			return false;
+		}
+	}
+	// 是空的
+	return true;
+}
+
+FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecWithSlot(const FGameplayTag& Slot)
+{
+	// 当遍历激活中的GA能力数组前，要加锁，也就是在任何地方循环激活能力GA数组，都这样加锁
+	// 锁定已激活GA表：含义就是---下面GetActivatableAbilities()表被锁定，并且跟踪记录锁定期间的 能力的 "增删改查" 操作 ，直到函数结束时，应用  锁定期间的操作
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilityHasSlot(AbilitySpec, Slot))
+		{
+			// 找到这个Slot对应的GA
+			return &AbilitySpec;
+		}
+	}
+	return nullptr;
+}
+
+bool UAuraAbilitySystemComponent::IsPassiveAbility(const FGameplayAbilitySpec& Spec) const
+{
+	// DataAssest
+	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+	const FGameplayTag AbilityTag = GetAbilityTagFromSpec(Spec);
+
+	// 具体结构体
+	const FAuraAbilityInfo& Info = AbilityInfo->FindAbilityInfoForTag(AbilityTag);
+	const FGameplayTag AbilityType = Info.AbilityType;
+
+	return AbilityType.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Type_Passive);
+}
+
+void UAuraAbilitySystemComponent::ClearSlot(FGameplayAbilitySpec* Spec)
+{
+	const FGameplayTag Slot = GetInputTagFromSpec(*Spec);
+	Spec->DynamicAbilityTags.RemoveTag(Slot);
+}
+
+bool UAuraAbilitySystemComponent::AbilityHasAnySlot(const FGameplayAbilitySpec& Spec)
+{
+	// 是否含有 输入标签  Request = 要求
+	return Spec.DynamicAbilityTags.HasTag(FGameplayTag::RequestGameplayTag(FName("InputTag")));
+}
+
+void UAuraAbilitySystemComponent::AssignSlotToAbility(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot)
+{
+	ClearSlot(&Spec);
+	Spec.DynamicAbilityTags.AddTag(Slot);
+}
+
+void UAuraAbilitySystemComponent::MulticastActivatePassiveEffect_Implementation(const FGameplayTag& AbilityTag,
+	bool bActivate)
+{
+	ActivePassiveEffect.Broadcast(AbilityTag, bActivate);
+}
+
+void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& Slot)
+{
+	if (FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
+	{
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		
+		const FGameplayTag& PrevSlot = GetInputTagFromSpec(*AbilitySpec);
+		const FGameplayTag& Status = GetStatusFromSpec(*AbilitySpec);
+
+		const bool bStatusValid = Status == GameplayTags.Abilities_Status_Equipped || Status == GameplayTags.Abilities_Status_UnLocked;
+		if (bStatusValid)
+		{
+			// 第一：要处理 被动技能的 【卸下】
+			if (!SlotIsEmpty(Slot)) // 槽里是否已经装备GA
+			{
+				// 槽里已经有GA
+				FGameplayAbilitySpec* SpecWithSlot = GetSpecWithSlot(Slot);
+				if (SpecWithSlot)
+				{
+					// 插槽上的原始GA与要装备的 是同一个
+					if (AbilityTag.MatchesTagExact(GetAbilityTagFromSpec(*SpecWithSlot)))
+					{
+						ClientEquipAbility(AbilityTag, GameplayTags.Abilities_Status_Equipped, Slot, PrevSlot);
+						return;
+					}
+
+					// 判断是不是被动能力
+					if (IsPassiveAbility(*SpecWithSlot))
+					{
+						MulticastActivatePassiveEffect(GetAbilityTagFromSpec(*SpecWithSlot), false);
+						// 卸下被动GA
+						DeactivatePassiveAbility.Broadcast(GetAbilityTagFromSpec(*SpecWithSlot));
+					}
+
+					// 别管是主动还是被动GA  最后 都要清空
+					ClearSlot(SpecWithSlot);
+				}
+			}
+			
+			// 第二：要处理 被动技能的 【穿戴】
+			// 空槽
+
+			// 此GA没有存在于任何插槽上，是最新放的
+			if (!AbilityHasAnySlot(*AbilitySpec))
+			{
+				// 开始激活
+				if (IsPassiveAbility(*AbilitySpec))
+				{
+					TryActivateAbility(AbilitySpec->Handle);
+					MulticastActivatePassiveEffect(GetAbilityTagFromSpec(*AbilitySpec), true);
+				}
+			}
+
+			// 第三：分配GA到UI
+			AssignSlotToAbility(*AbilitySpec, Slot);
+
+			MarkAbilitySpecDirty(*AbilitySpec);
+		}
+
+		ClientEquipAbility(AbilityTag, GameplayTags.Abilities_Status_Equipped, Slot, PrevSlot);
+	}
 }
 
 void UAuraAbilitySystemComponent::UpdateAbilityStatuses(int32 Level)

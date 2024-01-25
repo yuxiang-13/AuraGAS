@@ -108,10 +108,18 @@ public:
 	FGameplayTag Abilities_Type_Passive;
 	// 技能种类-无
 	FGameplayTag Abilities_Type_None;
+
+	// 光环的保护
+	FGameplayTag Abilities_Passive_HaloOfProtection;
+	// 吸取生命
+	FGameplayTag Abilities_Passive_LifeSiphon;
+	// 吸取魔法
+	FGameplayTag Abilities_Passive_ManaSiphon;
 	
 	
 	FGameplayTag Abilities_Fire_FireBolt;
 	FGameplayTag Abilities_Lightning_Electrocute;
+	FGameplayTag Abilities_Arcane_ArcaneShards;
 
 	// 冷却标签
 	FGameplayTag Cooldown_Fire_FireBolt;

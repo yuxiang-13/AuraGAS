@@ -11,10 +11,14 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContaine
 // 赋予能力的广播
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven)
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&)
-
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChanged, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*StatusTag*/, int32 /*AbilityLevel*/)
 DECLARE_MULTICAST_DELEGATE_FourParams(FAbilityEquipped, const FGameplayTag& /*AbilityTag*/, const FGameplayTag& /*Status*/, const FGameplayTag& /*Slot*/, const FGameplayTag& /*PreviousSlot*/)
 
+// 激活or停用 被动特效
+DECLARE_MULTICAST_DELEGATE_TwoParams(FActivePassiveEffect, const FGameplayTag& /*AbilityTag*/, bool /*AbilityTag*/)
+
+// 不激活 被动
+DECLARE_MULTICAST_DELEGATE_OneParam(FDeactivatePassiveAbility, const FGameplayTag& /*AbilityTag*/)
 
 struct FAuraAbilityInfo;
 
@@ -31,6 +35,9 @@ public:
 	FAbilityStatusChanged AbilityStatusChanged;
 	FAbilityEquipped AbilityEquipped;
 
+	FDeactivatePassiveAbility DeactivatePassiveAbility;
+	FActivePassiveEffect ActivePassiveEffect;
+ 
 	// 对外接口
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 	// 对外接口
@@ -52,9 +59,27 @@ public:
 	// 获取技能树 GA状态 ---  静态，方便随时获取
 	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	FGameplayTag GetStatusFromAbilityTag(const FGameplayTag& AbilityTag);
-	FGameplayTag GetInputTagFromAbilityTag(const FGameplayTag& AbilityTag);
-	
+	FGameplayTag GetSlotFromAbilityTag(const FGameplayTag& AbilityTag);
 
+	// GA时候已经放到装备栏插槽
+	bool AbilityHasSlot(const FGameplayAbilitySpec& Spec, const FGameplayTag& Slot);
+	// 插槽是不是空
+	bool SlotIsEmpty(const FGameplayTag& Slot);
+	// 返回插槽上的GA
+	FGameplayAbilitySpec* GetSpecWithSlot(const FGameplayTag& Slot);
+	// 此GA是否是被动GA
+	bool IsPassiveAbility(const FGameplayAbilitySpec& Spec) const;
+
+	// 此GA是否 已经位于某一个插槽  static 这个函数里面只是解读GA，没有操作GA,所以可以Static更好
+	static bool AbilityHasAnySlot(const FGameplayAbilitySpec& Spec);
+
+	// 分配GA到插槽
+	static void AssignSlotToAbility(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot);
+
+	// Unreliable 可以丢失这个RPC，也就是可以不保证所有玩家看到，当网络不好的情况下
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastActivatePassiveEffect(const FGameplayTag& AbilityTag, bool bActivate);
+	
 	// 通过Tag获取GA Spec
 	FGameplayAbilitySpec* GetSpecFromAbilityTag(const FGameplayTag& AbilityTag);
 	
@@ -78,7 +103,7 @@ public:
 
 	bool GetDescriptionsByAbilityTag(const FGameplayTag& AbilityTag, FString& OutDescription, FString& OutNextLevelDescription);
 
-	void ClearSlot(FGameplayAbilitySpec* Spec);
+	static void ClearSlot(FGameplayAbilitySpec* Spec);
 	void ClearAbilitiesOfSlot(const FGameplayTag& Slot);
 	static bool AbilityHasSlot(FGameplayAbilitySpec* Spec, const FGameplayTag& Slot);
 protected:

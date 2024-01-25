@@ -10,6 +10,7 @@
 #include "AuraCharacterBase.generated.h"
 
 
+class UPassiveNiagaraComponent;
 class UNiagaraSystem;
 class UGameplayAbility;
 class UAbilitySystemComponent;
@@ -25,6 +26,8 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 public:
 	AAuraCharacterBase();
+	virtual void Tick(float DeltaSeconds) override;
+	
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; };
 
@@ -174,6 +177,17 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Abilities")
 	TObjectPtr<UAnimMontage> HitReactMontage;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> HaloOfProtectionNiagaraComponent;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> LifeSiphonNiagaraComponent;
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPassiveNiagaraComponent> ManaSiphonNiagaraComponent;
+
+	// 上面三个特效组件的 根，这样，这个根可以自由控制旋转而不会影响角色
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USceneComponent> EffectAttachComponent;
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

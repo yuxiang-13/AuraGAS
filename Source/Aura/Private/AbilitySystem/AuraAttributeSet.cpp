@@ -279,16 +279,22 @@ void UAuraAttributeSet::HandleInComingXP(const FEffectProperties& Props)
 		const int32 NewLevelUps = NewLevel - CurrentLevel;
 		if (NewLevelUps > 0)
 		{
-			// TODO 升级奖励 属性点，加血
-			const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(
-				Props.SourceCharacter, CurrentLevel);
-			const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(
-				Props.SourceCharacter, CurrentLevel);
-
 			IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NewLevelUps);
+			
+			int32 AttributePointsReward = 0;
+			int32 SpellPointsReward = 0;
+			// TODO 升级奖励 属性点，加血
+			for (int32 i = 0; i < NewLevelUps; ++i)
+			{
+				AttributePointsReward += IPlayerInterface::Execute_GetAttributePointsReward(
+					Props.SourceCharacter, CurrentLevel + i);
+				SpellPointsReward += IPlayerInterface::Execute_GetSpellPointsReward(
+					Props.SourceCharacter, CurrentLevel + i);
+			}
+			
 			IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
 			IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
-
+		
 
 			bTopOffHealth = true;
 			bTopOffMana = true;

@@ -53,4 +53,9 @@ public:
 	void AddToXP(int32 InXP);
 	UFUNCTION(BlueprintNativeEvent)
 	void LevelUp();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void ShowMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void HideMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
 };
