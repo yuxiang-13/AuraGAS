@@ -19,6 +19,8 @@ class UGameplayEffect;
 class UAnimMontage;
 class UDebuffNiagaraComponent;
 
+
+
 // æbstrækt 抽象（就不会UE关卡中被显示使用）
 UCLASS(Abstract)
 class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface, public ICombatInterface
@@ -31,7 +33,19 @@ public:
 	UAbilitySystemComponent* GetAbilitySystemComponent() const;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; };
 
+	/*
+	- `float DamageAmount`: 代表进行攻击的破坏量，也就是这次攻击导致的伤害值。
+	- `FDamageEvent const& DamageEvent`: 这是一个结构，它包含了关于用于造成伤害的事件的信息。它可能包含攻击类型（例如，是爆炸引起的还是子弹引起的等等），攻击的特殊属性（例如，是否会穿透盔甲）等数据。
+	- `AController* EventInstigator`: 这个参数通常代表了造成破坏的实体的控制器，也就是发起攻击的玩家或AI。
+	- `AActor* DamageCauser`: 这个参数是造成伤害的实体本身，例如一个子弹、一把剑、一个爆炸等等。
+	 */
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+
+
+	FOnASCRegistered OnASCRegistered;
+	FOnDeath OnOnDeath;
+	FOnDamageSignature OnDamageDelegate;
 
 
 	/* Combat Interface */
@@ -49,11 +63,9 @@ public:
 	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
 	bool IsBeingShocked_Implementation() const override;
 	void SetBeingShocked_Implementation(bool bInShock) override;
+	
+	virtual FOnDamageSignature& GetOnDamageSignature() override;
 	/* Combat Interface */
-
-	FOnASCRegistered OnASCRegistered;
-	FOnDeath OnOnDeath;
-
 	
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath(const FVector& DeathImpulse);

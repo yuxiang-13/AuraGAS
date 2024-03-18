@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Interacton/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // 1 原C++ 结构体。没必要加F 因为是原生c++
@@ -175,8 +176,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Arcane, DamageStatics().ArcaneResistanceDef);
 	TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Physical, DamageStatics().PhysicalResistanceDef);
 
-
-	
 	const UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 
@@ -195,9 +194,9 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		TargetPlayerLevel = ICombatInterface::Execute_GetPlayerLevel(TargetAvatar);
 	}
 	
-	
 	// 获取GESpec
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
+	FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 	
 	// 创建评估参数集   
 	FAggregatorEvaluateParameters EvaluateParameters;
@@ -210,7 +209,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	DetermineDebuff(ExecutionParams, Spec, EvaluateParameters, TagsToCaptureDefs);
 	
-	
 	// Get Damage Set by Caller Magnitude 获取  c++ Set by Caller Magnitude 传递的参数
 	// float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
 	// 便利伤害类型，进行伤害累加
@@ -220,7 +218,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	{
 		const FGameplayTag DamageTypeTag = Pair.Key;
 		const FGameplayTag ResistanceTag = Pair.Value;
-
 		
 		checkf(TagsToCaptureDefs.Contains(ResistanceTag), TEXT("TagsToCaptureDefs doesn't contain Tag: [%s] in ExecCalc_Damage"), *ResistanceTag.ToString());
 		//1    AuraDamageStatics aaa = AuraDamageStatics() 注意，这里 aaa 是直接创建一个结构体，开销大，而且出了for循环直接触发析构
@@ -231,6 +228,10 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		{
 			// 获取GE指定伤害
 			float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag, false);
+			if (DamageTypeValue <= 0.f)
+			{
+				continue;
+			}
 
 			// 捕获
 			float Resistance = 0.f;
@@ -239,7 +240,37 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		
 			// 计算伤害
 			DamageTypeValue *= (100.f - Resistance) / 100.f;
-		
+
+			// 径向伤害的抗性DamageTypeValue计算前，进行范围缩小伤害
+			// 1 应用引擎范围伤害前，需要 重写 TakeDamage 函数
+			// 2 创建一个代理 OnDamageDelegate, 在 重写的TakeDamage函数 内，广播伤害
+			// 3 绑定 Lambda OnDamageDelegate 代理，在承伤者身上
+			// 4 触发范围伤害 UGameplayStatic::ApplyRadialDamageWithFalloff
+			// 【(将导致调用承伤者覆写的TakeDamage函数，然后函数会触发广播OnDamageDelegate)】
+			// 5 在相应的 Lambda 中，将伤害值，设置为广播收到的值
+
+			if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(TargetAvatar))
+			{
+				// [&] 通过引用捕获
+				CombatInterface->GetOnDamageSignature().AddLambda(  [&]  (float DamageAmount)
+				{
+					DamageTypeValue = DamageAmount;
+				});
+				UGameplayStatics::ApplyRadialDamageWithFalloff(
+					TargetAvatar,
+					DamageTypeValue, // 伤害
+					0.f, // 最小伤害
+					UAuraAbilitySystemLibrary::GetRadialDamageOrigin(EffectContextHandle),
+					UAuraAbilitySystemLibrary::GetRadialDamageInnerRadius(EffectContextHandle),
+					UAuraAbilitySystemLibrary::GetRadialDamageOuterRadius(EffectContextHandle),
+					1.f, // 衰减
+					UDamageType::StaticClass(),
+					TArray<AActor*>(),
+					SourceAvatar,
+					nullptr
+				);
+			}
+			
 			Damage += DamageTypeValue;
 		}
 	}
@@ -250,22 +281,17 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// Attempt = 尝试    捕获
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BlockChanceDef, EvaluateParameters, TargetBlockChance);
 	TargetBlockChance = FMath::Max<float>(0.f, TargetBlockChance);
-
 	// 格挡几率
 	const bool bBlocked = FMath::RandRange(1, 100) < TargetBlockChance;
-
 	// 传递格挡
 	{
-		FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 		UAuraAbilitySystemLibrary::SetIsBlockedHit(EffectContextHandle, bBlocked);
 	}
-	
 	if (bBlocked)
 	{
 		// 伤害减半
 		Damage = Damage / 2.f;
 	}
-	
 	// 捕获护甲
 	float TargetArmor = 0.f;
 	// Attempt = 尝试    捕获
@@ -286,7 +312,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 寻找曲线值  Eval = 评估
 	const float ArmorPenetrationCoefficient = ArmorPenetrationCurve->Eval(SourcePlayerLevel);
 
-	
 	// 护甲穿透会 减少敌人的护甲值
 	// 护甲减免百分比 (比如敌人护甲100  而你护甲穿透1，那最后按照百分比减免，敌人护甲就是99) 【* 0.25f = 等级系数】
 	const float ArmorPenetrationPercentage = (100 - SourceArmorPenetration * ArmorPenetrationCoefficient ) / 100;
@@ -298,9 +323,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 【百分比减免伤害---  (100 - EffectiveArmor) / 100  表示最终折算比例】
 	Damage = Damage * (100 - EffectiveArmor  * EffectiveArmorCoefficient) / 100;
 
-
-
-	
 	// 暴击相关
 	float SourceCriticalHitChance = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CriticalHitChanceDef, EvaluateParameters, SourceCriticalHitChance);
@@ -314,7 +336,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CriticalHitDamageDef, EvaluateParameters, SourceCriticalHitDamage);
 	SourceCriticalHitDamage = FMath::Max<float>(SourceCriticalHitDamage, 0.f);
 
-	
 	// 寻找曲线
 	const FRealCurve* CriticalHitResistanceCurve = CurveTable->FindCurve(FName("CriticalHitResistance"), FString(" CriticalHitResistance 没找到 "));
 	// 寻找曲线值  Eval = 评估
@@ -326,7 +347,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	
 	// 传递暴击
 	{
-		FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 		UAuraAbilitySystemLibrary::SetIsCriticalHit(EffectContextHandle, bCriticalHit);
 	}
 	

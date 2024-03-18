@@ -8,6 +8,10 @@
 #include "CombatInterface.generated.h"
 
 class UAbilitySystemComponent;
+
+
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDamageSignature, float /*DamageAmount*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnASCRegistered, UAbilitySystemComponent*)
 // 敌人死亡时触发
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadActor);
@@ -92,6 +96,8 @@ public:
 	// 当ASC注册成功时触发代理
 	virtual FOnASCRegistered& GetOnASCRefisteredDelegate() = 0;
 	virtual FOnDeath& GetOnDeathDelegate() = 0;
+
+	virtual FOnDamageSignature& GetOnDamageSignature() = 0;
 	
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void SetInShockLoop(bool bInLoop);
