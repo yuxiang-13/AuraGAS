@@ -30,14 +30,15 @@ public:
 	//TODO: UPROPERTY 自动垃圾回收 【能当这个导弹GA销毁时，这个也回收】
 	UPROPERTY()
 	TObjectPtr<USceneComponent> HomingTargetSceneComponent;
-	
+
+	UFUNCTION(BlueprintCallable)
 	void OnHit();
 protected:
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
 
 	UFUNCTION()
-	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 private:
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 15.f;
