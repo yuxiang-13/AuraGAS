@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "AuraAbilitySystemLibrary.generated.h"
@@ -165,4 +166,24 @@ public:
 	static TArray<FVector> EvenlyRotatedVectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumVectors);
 	
 	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel);
+
+	/*
+	 * Damage Effect Params
+	 */
+	UFUNCTION(BlueprintCallable, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void SetIsRadialDamageEffectParam(UPARAM(ref) FDamageEffectParams& DamageEffectParams, bool bIsRadial, float InnerRadius, float OuterRadius, FVector Origin);
+
+	// 设置击退方向
+	UFUNCTION(BlueprintCallable, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void SetKnockbackDirection(UPARAM(ref) FDamageEffectParams& DamageEffectParams, FVector KnockbackDirection, float Magnitude);
+
+	// 设置死亡冲击
+	UFUNCTION(BlueprintCallable, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void SetDeathImpulseDirection(UPARAM(ref) FDamageEffectParams& DamageEffectParams, FVector ImpulseDirection, float Magnitude);
+
+	// 设置ASC
+	UFUNCTION(BlueprintCallable, Category= "AuraAbilitySystemLibrary|GameplayMechanics")
+	static void SetTargetEffectParamsASC(UPARAM(ref) FDamageEffectParams& DamageEffectParams, UAbilitySystemComponent* InASC);
+
+	
 };

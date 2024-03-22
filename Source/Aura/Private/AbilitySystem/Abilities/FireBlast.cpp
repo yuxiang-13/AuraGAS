@@ -97,8 +97,12 @@ TArray<AAuraFireBall*> UFireBlast::SpawnFireBalls()
 
 		// 创建伤害GE
 		FireBall->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
-
+		FireBall->ReturnToActor = GetAvatarActorFromActorInfo();
+		FireBall->SetOwner(GetAvatarActorFromActorInfo());
+		
 		FireBalls.Add(FireBall);
+
+		FireBall->ExplosionDamageParams = MakeDamageEffectParamsFromClassDefaults();
 		
 		FireBall->FinishSpawning(SpawnTransform);
 	}

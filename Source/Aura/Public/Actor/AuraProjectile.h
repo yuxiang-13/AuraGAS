@@ -26,13 +26,20 @@ public:
 	// *** InitialHealth 属性被标记为 ExposeOnSpawn，这意味着在蓝图中创建该类的实例时，用户将能够在创建实例时设置 InitialHealth 的初始值。
 	UPROPERTY(BlueprintReadWrite, meta=(ExposeOnSpawn = true))
 	FDamageEffectParams DamageEffectParams;
-
+	
+	bool bHit = false;
+	
 	//TODO: UPROPERTY 自动垃圾回收 【能当这个导弹GA销毁时，这个也回收】
 	UPROPERTY()
 	TObjectPtr<USceneComponent> HomingTargetSceneComponent;
 
 	UFUNCTION(BlueprintCallable)
-	void OnHit();
+	virtual  void OnHit();
+
+	bool IsValidOverlap(AActor* OtherActor);
+
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> LoopingSoundComponent;
 protected:
 	virtual void BeginPlay() override;
 	virtual void Destroyed() override;
@@ -42,8 +49,6 @@ protected:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	float LifeSpan = 15.f;
-	
-	bool bHit = false; 
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> Sphere;
@@ -56,7 +61,4 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USoundBase> LoopingSound;
-
-	UPROPERTY()
-	TObjectPtr<UAudioComponent> LoopingSoundComponent;
 };
