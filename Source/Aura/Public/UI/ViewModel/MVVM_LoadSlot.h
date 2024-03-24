@@ -8,6 +8,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWidgetSwitcherIndex, int32, WidgetSwitcherIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FEnableSelectSlotButton, bool, bEnable);
 
 UCLASS()
 class AURA_API UMVVM_LoadSlot : public UMVVMViewModelBase
@@ -17,14 +18,34 @@ class AURA_API UMVVM_LoadSlot : public UMVVMViewModelBase
 public:
 	UPROPERTY(BlueprintAssignable)
 	FSetWidgetSwitcherIndex SetWidgetSwitcherIndex;
+	
+	UPROPERTY(BlueprintAssignable)
+	FEnableSelectSlotButton EnableSelectSlotButton;
 
 	void InitializeSlot();
 
+	TEnumAsByte<ESaveSlotStates> SlotStatus;
+	
+	UPROPERTY()
+	int32 SlotIndex;
+	
+	// FieldNotify, 标记此变量是一个字段通知， Setter, Getter 意味着需要实现 GetSet方法
+	/* Field Notifies */
+	void SetPlayerName(FString InPlayerName);
+	FString GetPlayerName() const { return PlayerName; };
+	/* Field Notifies */
 	void SetLoadSlotName(FString InLoadSlotName);
 	FString GetLoadSlotName() const { return LoadSlotName; };
+	/* Field Notifies */
+	void SetMapName(FString InMapName);
+	FString GetMapName() const { return MapName; };
+
 private:
-	// FieldNotify, 标记此变量是一个字段通知， Setter, Getter 意味着需要实现 GetSet方法
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
 	FString LoadSlotName;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
+	FString PlayerName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
+	FString MapName;
+	
 };

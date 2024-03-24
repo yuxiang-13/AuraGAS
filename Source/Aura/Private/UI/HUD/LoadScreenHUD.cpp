@@ -20,4 +20,7 @@ void ALoadScreenHUD::BeginPlay()
 	LoadScreenWidget->AddToViewport();
 
 	LoadScreenWidget->BlueprintInitializeWidget();
+
+	// MVVM 触发加载数据
+	LoadScreenViewModel->LoadData();
 }
