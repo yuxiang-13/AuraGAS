@@ -19,4 +19,12 @@ public:
 	FSetWidgetSwitcherIndex SetWidgetSwitcherIndex;
 
 	void InitializeSlot();
+
+	void SetLoadSlotName(FString InLoadSlotName);
+	FString GetLoadSlotName() const { return LoadSlotName; };
+private:
+	// FieldNotify, 标记此变量是一个字段通知， Setter, Getter 意味着需要实现 GetSet方法
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
+	FString LoadSlotName;
+
 };
