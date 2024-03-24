@@ -46,6 +46,11 @@ public:
 	void PlayButtonPressed();
 
 	void LoadData();
+
+	/* Field Notifies */
+	void SetNumLoadSlots(int32 InNumLoadSlots);
+	int32 GetNumLoadSlots() const { return NumLoadSlots; };
+	
 private:
 	UPROPERTY()
 	TMap<int32, UMVVM_LoadSlot*> LoadSlots;
@@ -60,4 +65,8 @@ private:
 
 	UPROPERTY()
 	UMVVM_LoadSlot* SelectedSlot;
+
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
+	int32 NumLoadSlots;
 };
