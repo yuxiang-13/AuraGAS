@@ -4,6 +4,7 @@
 #include "UI/ViewModel/MVVM_LoadScreen.h"
 
 #include "Aura/AuraGameModeBase.h"
+#include "Game/AuraGameInstance.h"
 #include "Game/LoadScreenSaveGame.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
@@ -40,14 +41,19 @@ void UMVVM_LoadScreen::NewSlotButtonPressed(int32 Slot, const FString& EnteredNa
 	// 这种无法触发，必须是触发Set函数
 	// LoadSlots[Slot]->PlayerName = EnteredName;
 	LoadSlots[Slot]->SetPlayerName(EnteredName);
-
+	LoadSlots[Slot]->SetPlayerLevel(1);
 	LoadSlots[Slot]->SlotStatus = ESaveSlotStates::Taken;
+	LoadSlots[Slot]->PlayerStartTag = AuraGameMode->DefaultPlayerStartTag;
 
 	// 这种无法触发，必须是触发Set函数
 	LoadSlots[Slot]->SetMapName(AuraGameMode->DefaultMapName);
-
 	AuraGameMode->SavaSlotData(LoadSlots[Slot], Slot);
 	LoadSlots[Slot]->InitializeSlot();
+
+	UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(AuraGameMode->GetGameInstance());
+	AuraGameInstance->LoadSlotName = LoadSlots[Slot]->GetLoadSlotName();
+	AuraGameInstance->LoadSlotIndex = LoadSlots[Slot]->SlotIndex;
+	AuraGameInstance->PlayerStartTag = AuraGameMode->DefaultPlayerStartTag;
 }
 
 void UMVVM_LoadScreen::NewGameButtonPressed(int32 Slot)
@@ -88,6 +94,12 @@ void UMVVM_LoadScreen::DeleteButtonOnPressed()
 void UMVVM_LoadScreen::PlayButtonPressed()
 {
 	AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+	
+	UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(AuraGameMode->GetGameInstance());
+	AuraGameInstance->PlayerStartTag = SelectedSlot->PlayerStartTag;
+	AuraGameInstance->LoadSlotName = SelectedSlot->GetLoadSlotName();
+	AuraGameInstance->LoadSlotIndex = SelectedSlot->SlotIndex;
+		
 	if (SelectedSlot)
 	{
 		AuraGameMode->TravelToMap(SelectedSlot);
@@ -109,7 +121,9 @@ void UMVVM_LoadScreen::LoadData()
 		// 触发 属性通知
 		const FString MapName = SaveObject->MapName;
 		LoadSlot.Value->SetMapName(MapName);
-		
+		// 设置 tag
+		LoadSlot.Value->PlayerStartTag = SaveObject->PlayerStartTag;
+		LoadSlot.Value->SetPlayerLevel(SaveObject->PlayerLevel);
 		
 		// 触发自己写的DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetWidgetSwitcherIndex, int32, WidgetSwitcherIndex);
 		LoadSlot.Value->InitializeSlot();

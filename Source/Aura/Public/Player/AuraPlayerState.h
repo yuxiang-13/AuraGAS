@@ -12,6 +12,7 @@ class UAbilitySystemComponent;
 class UAttributeSet;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChanged, int32 /*StateValue*/)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLevelChanged, int32 /*StateValue*/, bool  /*bLevelUp*/)
 /**
  * 
  */
@@ -31,7 +32,7 @@ public:
 	FORCEINLINE int32 GetLevel() const { return Level; };
 	void SetLevel(int32 InLevel);
 	void AddLevel(int32 InLevel);
-	FOnPlayerStateChanged OnLevelChangedDelegate;
+	FOnLevelChanged OnLevelChangedDelegate;
 
 	FORCEINLINE int32 GetXP() const { return XP; };
 	void AddToXP(int32 InXP);

@@ -7,6 +7,7 @@
 #include "AuraAbilitySystemComponent.generated.h"
 
 
+class ULoadScreenSaveGame;
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/)
 // 赋予能力的广播
 DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven)
@@ -34,10 +35,10 @@ public:
 	FAbilitiesGiven AbilitiesGivenDelegate;
 	FAbilityStatusChanged AbilityStatusChanged;
 	FAbilityEquipped AbilityEquipped;
-
 	FDeactivatePassiveAbility DeactivatePassiveAbility;
 	FActivePassiveEffect ActivePassiveEffect;
- 
+
+	void AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData);
 	// 对外接口
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 	// 对外接口

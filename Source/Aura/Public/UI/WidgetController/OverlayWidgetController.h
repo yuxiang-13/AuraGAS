@@ -36,8 +36,9 @@ struct FUIWidgetRow: public FTableRowBase
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnLevelChangedSignature, int, NewLevel, bool, bLevelUp);
 
 UCLASS()
 class AURA_API UOverlayWidgetController : public UAuraWidgetController
@@ -64,7 +65,7 @@ public:
 
 	// 升级
 	UPROPERTY(BlueprintAssignable, Category="GAS|Level")
-	FOnPlayerStateChangedSignature OnPlayerLevelChangedDelegate;
+	FOnLevelChangedSignature OnPlayerLevelChangedDelegate;
 protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Widget Data")

@@ -28,18 +28,17 @@ public:
 	virtual void LevelUp_Implementation() override;
 	virtual int32 GetXP_Implementation() override;
 	virtual int32 FindLevelForXP_Implementation(int32 InXP) override;
-	
 	virtual int32 GetAttributePointsReward_Implementation(int32 Level) override;
 	virtual int32 GetSpellPointsReward_Implementation(int32 Level) override;
 	virtual void AddToAttributePoints_Implementation(int32 InAttributePoints) override;
 	virtual void AddToPlayerLevel_Implementation(int32 InPlayerLevel) override;
 	virtual void AddToSpellPoints_Implementation(int32 InSPellPoints) override;
-
 	virtual int32 GetAttributePoints_Implementation() override;
 	virtual int32 GetSpellPoints_Implementation() override;
-
 	virtual void ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial) override;
 	virtual void HideMagicCircle_Implementation(UMaterialInterface* DecalMaterial) override;
+
+	virtual void SaveProgress_Implementation(const FName& CheckpointTag) override;
 	/* Player Interface */
 	
 	
@@ -52,6 +51,8 @@ public:
 
 	virtual void OnRep_Stunned() override;
 	virtual void OnRep_Burned() override;
+
+	void LoadProgress();
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> TopDownCameraComponent;

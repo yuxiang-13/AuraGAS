@@ -28,6 +28,9 @@ public:
 	
 	UPROPERTY()
 	int32 SlotIndex;
+
+	UPROPERTY()
+	FName PlayerStartTag;
 	
 	// FieldNotify, 标记此变量是一个字段通知， Setter, Getter 意味着需要实现 GetSet方法
 	/* Field Notifies */
@@ -39,6 +42,9 @@ public:
 	/* Field Notifies */
 	void SetMapName(FString InMapName);
 	FString GetMapName() const { return MapName; };
+	/* Field Notifies */
+	void SetPlayerLevel(int32 InPlayerLevel);
+	int32 GetPlayerLevel() const { return PlayerLevel; };
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
@@ -47,5 +53,7 @@ private:
 	FString PlayerName;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
 	FString MapName;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, FieldNotify, Setter, Getter, meta=(AllowPrivateAccess = "true"))
+	int32 PlayerLevel;
 	
 };
